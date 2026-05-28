@@ -65,7 +65,7 @@
     </a>
 </div>
 
-{# === گروه: تنظیمات شرکت === #}
+{# === گروه: تنظیمات === #}
 <div class="nav-group">
     <p class="nav-group-title">تنظیمات</p>
     <a href="/{{ company_code }}/admin/settings/" class="nav-item flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-slate-300 hover:bg-slate-800 hover:text-white transition-smooth {% if '/admin/settings/' in current_path and '/admin/settings/operators/' not in current_path %}active{% endif %}">
@@ -75,6 +75,10 @@
     <a href="/{{ company_code }}/admin/page/" class="nav-item flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-slate-300 hover:bg-slate-800 hover:text-white transition-smooth {% if '/admin/page/' in current_path %}active{% endif %}">
         <svg class="nav-icon w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9"/></svg>
         <span>صفحه عمومی</span>
+    </a>
+    <a href="/{{ company_code }}/admin/payment-gateway/" class="nav-item flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-slate-300 hover:bg-slate-800 hover:text-white transition-smooth {% if '/admin/payment-gateway/' in current_path %}active{% endif %}">
+        <svg class="nav-icon w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+        <span>درگاه پرداخت</span>
     </a>
 </div>
 

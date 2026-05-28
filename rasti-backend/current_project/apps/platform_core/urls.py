@@ -11,6 +11,7 @@ from apps.accounts import views as auth_views
 from . import views
 from . import views_comm_templates
 from . import views_messages
+from . import views_payment_gateways
 from . import views_sms_billing
 
 app_name = "platform_core"
@@ -45,6 +46,11 @@ urlpatterns = [
     path("communication-templates/create/", views_comm_templates.comm_template_create, name="comm_template_create"),
     path("communication-templates/<int:template_id>/", views_comm_templates.comm_template_detail, name="comm_template_detail"),
     path("communication-templates/<int:template_id>/edit/", views_comm_templates.comm_template_edit, name="comm_template_edit"),
+
+    # Payment Gateways
+    path("payment-gateways/", views_payment_gateways.platform_gateway_index, name="platform_gateways"),
+    path("payment-gateways/settings/", views_payment_gateways.platform_gateway_settings, name="platform_gateway_settings"),
+    path("payment-gateways/test/", views_payment_gateways.platform_gateway_test, name="platform_gateway_test"),
 
     # Company Management
     path("companies/", views.company_list, name="companies"),
