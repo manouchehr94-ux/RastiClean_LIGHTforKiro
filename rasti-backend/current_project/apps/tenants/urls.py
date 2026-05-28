@@ -29,6 +29,7 @@ from .views_redirects import (
     legacy_reports_redirect,
 )
 from apps.platform_core import views_tenant_payment_gateway as tenant_pg_views
+from apps.platform_core import views_tenant_platform_invoices as tenant_pinv_views
 
 app_name = "tenants"
 
@@ -127,6 +128,12 @@ urlpatterns = [
     path("admin/sms-credit/transactions/", tenant_sms_views.tenant_sms_transactions, name="admin_sms_transactions"),
     path("admin/sms-credit/invoices/", tenant_sms_views.tenant_sms_invoices, name="admin_sms_invoices"),
     path("admin/sms-credit/invoices/<int:invoice_id>/", tenant_sms_views.tenant_sms_invoice_detail, name="admin_sms_invoice_detail"),
+
+    # Platform Invoices & Payment
+    path("admin/platform-invoices/", tenant_pinv_views.tenant_platform_invoices, name="admin_platform_invoices"),
+    path("admin/platform-invoices/<int:invoice_id>/", tenant_pinv_views.tenant_platform_invoice_detail, name="admin_platform_invoice_detail"),
+    path("admin/platform-invoices/<int:invoice_id>/pay/", tenant_pinv_views.tenant_platform_invoice_pay, name="admin_platform_invoice_pay"),
+    path("admin/platform-invoices/payment/mock/<int:transaction_id>/", tenant_pinv_views.tenant_platform_invoice_mock, name="admin_platform_invoice_mock"),
 
     # Admin: Communication Settings
     path("admin/communication-settings/", tenant_comm_views.tenant_comm_settings, name="admin_communication_settings"),
