@@ -107,7 +107,7 @@ class PlatformMessage(models.Model):
         OUTBOUND = "OUTBOUND", "ارسالی"
 
     class Status(models.TextChoices):
-        DRAFT = "DRAFT", "پیش‌نویس"
+        DRAFT = "DRAFT", "پیش\u200cنویس"
         QUEUED = "QUEUED", "در صف ارسال"
         SENT = "SENT", "ارسال شده"
         FAILED = "FAILED", "ناموفق"
@@ -169,14 +169,250 @@ class PlatformMessage(models.Model):
 
 
 
+class GlobalSMSPricingSetting(models.Model):
+    """Platform-wide SMS pricing. Only one row should exist (singleton)."""
+    characters_per_sms = models.PositiveIntegerField(default=60)
+    price_per_sms_rial = models.PositiveIntegerField(default=520)
+    updated_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "SMS Pricing Setting"
+
+    def __str__(self):
+        return f"{self.price_per_sms_rial} rial/sms, {self.characters_per_sms} chars/sms"
+
+
+class CompanySMSWallet(models.Model):
+    """SMS credit wallet for a tenant company."""
+    company = models.OneToOneField("tenants.Company", on_delete=models.CASCADE, related_name="sms_wallet")
+    balance_rial = models.BigIntegerField(default=0)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "Company SMS Wallet"
+
+    def __str__(self):
+        return f"{self.company.name}: {self.balance_rial} rial"
+
+
+class CompanySMSTransaction(models.Model):
+    """Transaction record for SMS wallet changes."""
+    class TransactionType(models.TextChoices):
+        CREDIT = "CREDIT", "شارژ"
+        DEBIT = "DEBIT", "مصرف"
+        ADJUSTMENT = "ADJUSTMENT", "تعدیل"
+        BLOCKED = "BLOCKED", "مسدود (اعتبار ناکافی)"
+
+    company = models.ForeignKey("tenants.Company", on_delete=models.CASCADE, related_name="sms_transactions")
+    wallet = models.ForeignKey(CompanySMSWallet, on_delete=models.CASCADE, related_name="transactions")
+    transaction_type = models.CharField(max_length=15, choices=TransactionType.choices)
+    amount_rial = models.BigIntegerField()
+    sms_parts = models.PositiveIntegerField(default=0)
+    message_length = models.PositiveIntegerField(default=0)
+    balance_after = models.BigIntegerField()
+    description = models.CharField(max_length=300, blank=True)
+    related_invoice = models.ForeignKey("platform_core.PlatformBillingInvoice", on_delete=models.SET_NULL, null=True, blank=True)
+    created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return f"{self.company.name} {self.transaction_type} {self.amount_rial}"
+
+
+class PlatformBillingInvoice(models.Model):
+    """Invoice from Platform Owner to tenant company."""
+    class InvoiceType(models.TextChoices):
+        SMS_RECHARGE = "SMS_RECHARGE", "شارژ پیامک"
+        SUBSCRIPTION = "SUBSCRIPTION", "اشتراک"
+        MANUAL = "MANUAL", "دستی"
+        OTHER = "OTHER", "سایر"
+
+    class Status(models.TextChoices):
+        UNPAID = "UNPAID", "پرداخت نشده"
+        PAID = "PAID", "پرداخت شده"
+        CANCELED = "CANCELED", "لغو شده"
+
+    company = models.ForeignKey("tenants.Company", on_delete=models.CASCADE, related_name="platform_invoices")
+    invoice_number = models.CharField(max_length=50, unique=True)
+    invoice_type = models.CharField(max_length=20, choices=InvoiceType.choices, default=InvoiceType.SMS_RECHARGE)
+    amount_rial = models.BigIntegerField()
+    status = models.CharField(max_length=10, choices=Status.choices, default=Status.UNPAID)
+    description = models.TextField(blank=True)
+    created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name="created_platform_invoices")
+    paid_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name="paid_platform_invoices")
+    created_at = models.DateTimeField(auto_now_add=True)
+    paid_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return f"Invoice #{self.invoice_number} - {self.company.name} ({self.get_status_display()})"
+
+
+
+class PlatformPaymentTransaction(models.Model):
+    """
+    Payment transaction for platform billing invoices.
+
+    Currently supports MANUAL payments only. Future-ready for online
+    gateways (ZarinPal, IDPay, PayPing).
+
+    Flow:
+    1. Tenant creates recharge invoice (UNPAID)
+    2. Payment transaction created (INITIATED)
+    3a. Manual: Platform Owner marks paid -> VERIFIED
+    3b. Future online: redirect to gateway -> callback -> VERIFIED/FAILED
+    4. If VERIFIED: invoice becomes PAID, wallet credited
+
+    TODO (Future):
+    - ZarinPal gateway integration
+    - IDPay gateway integration
+    - PayPing gateway integration
+    - Automatic callback verification
+    - Refund support
+    """
+
+    class Provider(models.TextChoices):
+        MANUAL = "MANUAL", "پرداخت دستی"
+        ZARINPAL_FUTURE = "ZARINPAL_FUTURE", "زرین\u200cپال (آینده)"
+        IDPAY_FUTURE = "IDPAY_FUTURE", "آیدی\u200cپی (آینده)"
+        PAYPING_FUTURE = "PAYPING_FUTURE", "پی\u200cپینگ (آینده)"
+        OTHER_FUTURE = "OTHER_FUTURE", "سایر (آینده)"
+
+    class Status(models.TextChoices):
+        INITIATED = "INITIATED", "آغاز شده"
+        REDIRECTED = "REDIRECTED", "هدایت به درگاه"
+        PAID = "PAID", "پرداخت شده"
+        FAILED = "FAILED", "ناموفق"
+        CANCELED = "CANCELED", "لغو شده"
+        VERIFIED = "VERIFIED", "تایید شده"
+
+    invoice = models.ForeignKey(
+        PlatformBillingInvoice,
+        on_delete=models.CASCADE,
+        related_name="payment_transactions",
+    )
+    company = models.ForeignKey(
+        "tenants.Company",
+        on_delete=models.CASCADE,
+        related_name="platform_payment_transactions",
+    )
+    amount_rial = models.BigIntegerField()
+    provider = models.CharField(
+        max_length=20,
+        choices=Provider.choices,
+        default=Provider.MANUAL,
+    )
+    authority = models.CharField(max_length=100, blank=True, help_text="Gateway authority/token")
+    tracking_code = models.CharField(max_length=100, blank=True)
+    reference_id = models.CharField(max_length=100, blank=True)
+    status = models.CharField(
+        max_length=15,
+        choices=Status.choices,
+        default=Status.INITIATED,
+    )
+    gateway_response = models.TextField(blank=True, help_text="Raw gateway response JSON")
+    created_at = models.DateTimeField(auto_now_add=True)
+    verified_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+        verbose_name = "Platform Payment Transaction"
+
+    def __str__(self):
+        return f"Payment #{self.id} - {self.invoice.invoice_number} ({self.get_status_display()})"
+
+
+
+class CommunicationTemplate(models.Model):
+    """
+    Platform Owner controlled communication template.
+    Tenant companies can ONLY toggle is_enabled for their own company.
+    They CANNOT edit text, title, body, links, or placeholders.
+    """
+
+    class EventKey(models.TextChoices):
+        COMPANY_REGISTERED = "COMPANY_REGISTERED", "ثبت\u200cنام شرکت"
+        COMPANY_APPROVED = "COMPANY_APPROVED", "تأیید شرکت"
+        ORDER_CREATED = "ORDER_CREATED", "ایجاد سفارش"
+        ORDER_ASSIGNED = "ORDER_ASSIGNED", "تخصیص سفارش"
+        ORDER_STATUS_CHANGED = "ORDER_STATUS_CHANGED", "تغییر وضعیت سفارش"
+        INVOICE_CREATED = "INVOICE_CREATED", "صدور فاکتور"
+        PAYMENT_RECEIVED = "PAYMENT_RECEIVED", "دریافت پرداخت"
+        SMS_CREDIT_LOW = "SMS_CREDIT_LOW", "اعتبار پیامک کم"
+        SMS_CREDIT_EMPTY = "SMS_CREDIT_EMPTY", "اعتبار پیامک تمام"
+        TECHNICIAN_NOTIFICATION = "TECHNICIAN_NOTIFICATION", "اعلان تکنسین"
+        OPERATOR_NOTIFICATION = "OPERATOR_NOTIFICATION", "اعلان اپراتور"
+
+    class Channel(models.TextChoices):
+        INTERNAL_NOTIFICATION = "INTERNAL_NOTIFICATION", "اعلان داخلی"
+        SMS = "SMS", "پیامک"
+        EMAIL_FUTURE = "EMAIL_FUTURE", "ایمیل (آینده)"
+
+    class RecipientType(models.TextChoices):
+        COMPANY_ADMIN = "COMPANY_ADMIN", "مدیر شرکت"
+        OPERATOR = "OPERATOR", "اپراتور"
+        TECHNICIAN = "TECHNICIAN", "تکنسین"
+        PLATFORM_OWNER = "PLATFORM_OWNER", "مدیر پلتفرم"
+
+    company = models.ForeignKey(
+        "tenants.Company", on_delete=models.CASCADE, null=True, blank=True,
+        related_name="comm_templates",
+        help_text="Null = global default. Set = company-specific override.",
+    )
+    event_key = models.CharField(max_length=40, choices=EventKey.choices)
+    channel = models.CharField(max_length=30, choices=Channel.choices)
+    recipient_type = models.CharField(max_length=20, choices=RecipientType.choices)
+    title_template = models.CharField(max_length=300)
+    body_template = models.TextField()
+    action_label = models.CharField(max_length=100, blank=True)
+    action_url_template = models.CharField(max_length=300, blank=True)
+    is_active = models.BooleanField(default=True)
+    is_required = models.BooleanField(default=False)
+    allow_company_toggle = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["event_key", "channel"]
+        verbose_name = "Communication Template"
+
+    def __str__(self):
+        scope = self.company.code if self.company else "GLOBAL"
+        return f"[{scope}] {self.get_event_key_display()} / {self.get_channel_display()}"
+
+
+class CommunicationTemplateCompanySetting(models.Model):
+    """Per-company toggle for a communication template."""
+    company = models.ForeignKey("tenants.Company", on_delete=models.CASCADE, related_name="comm_template_settings")
+    template = models.ForeignKey(CommunicationTemplate, on_delete=models.CASCADE, related_name="company_settings")
+    is_enabled = models.BooleanField(default=True)
+    updated_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=["company", "template"], name="unique_comm_tpl_setting_per_company"),
+        ]
+
+    def __str__(self):
+        return f"{self.company.code} / {self.template.event_key} -> {'enabled' if self.is_enabled else 'disabled'}"
+
+
 class PaymentGatewayProvider(models.TextChoices):
     """Available payment gateway providers."""
     MOCK = "MOCK", "آزمایشی (بدون اتصال)"
     MANUAL = "MANUAL", "پرداخت دستی"
-    ZARINPAL_FUTURE = "ZARINPAL_FUTURE", "زرین‌پال (آینده)"
+    ZARINPAL_FUTURE = "ZARINPAL_FUTURE", "زرین\u200cپال (آینده)"
     ZIBAL_FUTURE = "ZIBAL_FUTURE", "زیبال (آینده)"
-    IDPAY_FUTURE = "IDPAY_FUTURE", "آیدی‌پی (آینده)"
-    PAYPING_FUTURE = "PAYPING_FUTURE", "پی‌پینگ (آینده)"
+    IDPAY_FUTURE = "IDPAY_FUTURE", "آیدی\u200cپی (آینده)"
+    PAYPING_FUTURE = "PAYPING_FUTURE", "پی\u200cپینگ (آینده)"
 
 
 class PlatformPaymentGatewaySetting(models.Model):

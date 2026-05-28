@@ -8,7 +8,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('platform_core', '0002_platform_message'),
+        ('platform_core', '0005_communication_templates'),
         ('tenants', '0006_phase26_sms_templates'),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
