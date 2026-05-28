@@ -20,6 +20,7 @@ These legacy paths now redirect to the correct role-specific panel.
 from django.urls import include, path
 
 from . import views, views_admin, views_branding
+from apps.platform_core import views_tenant_sms_credit as tenant_sms_views
 from .views_redirects import (
     legacy_notifications_redirect,
     legacy_orders_catch_all,
@@ -112,6 +113,13 @@ urlpatterns = [
     # Admin: Requests & SMS
     path("admin/requests/", views_admin.admin_request_list, name="admin_requests"),
     path("admin/sms/", include("apps.sms.urls")),
+
+    # Admin: SMS Credit Wallet
+    path("admin/sms-credit/", tenant_sms_views.tenant_sms_credit, name="admin_sms_credit"),
+    path("admin/sms-credit/recharge/", tenant_sms_views.tenant_sms_recharge, name="admin_sms_recharge"),
+    path("admin/sms-credit/transactions/", tenant_sms_views.tenant_sms_transactions, name="admin_sms_transactions"),
+    path("admin/sms-credit/invoices/", tenant_sms_views.tenant_sms_invoices, name="admin_sms_invoices"),
+    path("admin/sms-credit/invoices/<int:invoice_id>/", tenant_sms_views.tenant_sms_invoice_detail, name="admin_sms_invoice_detail"),
 
     # Admin: Reports & Notifications
     path("admin/reports/", include("apps.reports.urls")),

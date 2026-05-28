@@ -166,3 +166,90 @@ class PlatformMessage(models.Model):
 
     def __str__(self) -> str:
         return f"{self.subject} ({self.get_status_display()})"
+
+
+
+class GlobalSMSPricingSetting(models.Model):
+    """Platform-wide SMS pricing. Only one row should exist (singleton)."""
+    characters_per_sms = models.PositiveIntegerField(default=60)
+    price_per_sms_rial = models.PositiveIntegerField(default=520)
+    updated_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "SMS Pricing Setting"
+
+    def __str__(self):
+        return f"{self.price_per_sms_rial} rial/sms, {self.characters_per_sms} chars/sms"
+
+
+class CompanySMSWallet(models.Model):
+    """SMS credit wallet for a tenant company."""
+    company = models.OneToOneField("tenants.Company", on_delete=models.CASCADE, related_name="sms_wallet")
+    balance_rial = models.BigIntegerField(default=0)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "Company SMS Wallet"
+
+    def __str__(self):
+        return f"{self.company.name}: {self.balance_rial} rial"
+
+
+class CompanySMSTransaction(models.Model):
+    """Transaction record for SMS wallet changes."""
+    class TransactionType(models.TextChoices):
+        CREDIT = "CREDIT", "شارژ"
+        DEBIT = "DEBIT", "مصرف"
+        ADJUSTMENT = "ADJUSTMENT", "تعدیل"
+        BLOCKED = "BLOCKED", "مسدود (اعتبار ناکافی)"
+
+    company = models.ForeignKey("tenants.Company", on_delete=models.CASCADE, related_name="sms_transactions")
+    wallet = models.ForeignKey(CompanySMSWallet, on_delete=models.CASCADE, related_name="transactions")
+    transaction_type = models.CharField(max_length=15, choices=TransactionType.choices)
+    amount_rial = models.BigIntegerField()
+    sms_parts = models.PositiveIntegerField(default=0)
+    message_length = models.PositiveIntegerField(default=0)
+    balance_after = models.BigIntegerField()
+    description = models.CharField(max_length=300, blank=True)
+    related_invoice = models.ForeignKey("platform_core.PlatformBillingInvoice", on_delete=models.SET_NULL, null=True, blank=True)
+    created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return f"{self.company.name} {self.transaction_type} {self.amount_rial}"
+
+
+class PlatformBillingInvoice(models.Model):
+    """Invoice from Platform Owner to tenant company."""
+    class InvoiceType(models.TextChoices):
+        SMS_RECHARGE = "SMS_RECHARGE", "شارژ پیامک"
+        SUBSCRIPTION = "SUBSCRIPTION", "اشتراک"
+        MANUAL = "MANUAL", "دستی"
+        OTHER = "OTHER", "سایر"
+
+    class Status(models.TextChoices):
+        UNPAID = "UNPAID", "پرداخت نشده"
+        PAID = "PAID", "پرداخت شده"
+        CANCELED = "CANCELED", "لغو شده"
+
+    company = models.ForeignKey("tenants.Company", on_delete=models.CASCADE, related_name="platform_invoices")
+    invoice_number = models.CharField(max_length=50, unique=True)
+    invoice_type = models.CharField(max_length=20, choices=InvoiceType.choices, default=InvoiceType.SMS_RECHARGE)
+    amount_rial = models.BigIntegerField()
+    status = models.CharField(max_length=10, choices=Status.choices, default=Status.UNPAID)
+    description = models.TextField(blank=True)
+    created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name="created_platform_invoices")
+    paid_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name="paid_platform_invoices")
+    created_at = models.DateTimeField(auto_now_add=True)
+    paid_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return f"Invoice #{self.invoice_number} - {self.company.name} ({self.get_status_display()})"
