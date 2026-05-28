@@ -380,14 +380,45 @@ def technician_invoices(request: HttpRequest, **kwargs) -> HttpResponse:
     if not technician:
         return HttpResponseForbidden("Technician profile not found.")
 
-    from apps.invoices.models import Invoice
+    from django.db.models import Sum, Q
+    from apps.invoices.models import Invoice, InvoiceItem
 
     invoices = Invoice.objects.filter(
         company=company,
         order__technician=technician,
     ).order_by("-created_at")[:50]
 
+    # Summary calculations
+    all_invoices_qs = Invoice.objects.filter(
+        company=company,
+        order__technician=technician,
+    )
+    invoice_count = all_invoices_qs.count()
+    total_amount = all_invoices_qs.aggregate(
+        total=Sum("total_amount")
+    )["total"] or 0
+
+    # Service vs travel fee breakdown
+    items_qs = InvoiceItem.objects.filter(
+        invoice__company=company,
+        invoice__order__technician=technician,
+    )
+    travel_total = items_qs.filter(
+        description__contains="\u0627\u06cc\u0627\u0628 \u0648 \u0630\u0647\u0627\u0628"
+    ).aggregate(total=Sum("total_price"))["total"] or 0
+    service_total = items_qs.exclude(
+        description__contains="\u0627\u06cc\u0627\u0628 \u0648 \u0630\u0647\u0627\u0628"
+    ).aggregate(total=Sum("total_price"))["total"] or 0
+
+    summary = {
+        "invoice_count": invoice_count,
+        "total_amount": total_amount,
+        "service_total": service_total,
+        "travel_total": travel_total,
+    }
+
     return render(request, "orders/technician_invoices.html", {
         "company": company,
         "invoices": invoices,
+        "summary": summary,
     })

@@ -123,12 +123,48 @@ class TechnicianDashboardSelector:
             status=Order.Status.DONE,
         )
 
+        # Current-month item/order counts
+        now = timezone.now()
+        month_start = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+        month_qs = Order.objects.filter(
+            company=technician.company,
+            technician=technician,
+            created_at__gte=month_start,
+        )
+        month_completed_orders = month_qs.filter(status=Order.Status.DONE).count()
+        month_pending_orders = month_qs.exclude(
+            status__in=[Order.Status.DONE, Order.Status.CANCELLED]
+        ).count()
+
+        # Item counts via OrderItemValue (sum of value_number where kind=NUMBER)
+        from apps.orders.models import OrderItemValue
+        month_completed_items = OrderItemValue.objects.filter(
+            order__company=technician.company,
+            order__technician=technician,
+            order__status=Order.Status.DONE,
+            order__created_at__gte=month_start,
+            item__kind="number",
+        ).aggregate(total=Sum("value_number"))["total"] or 0
+
+        month_pending_items = OrderItemValue.objects.filter(
+            order__company=technician.company,
+            order__technician=technician,
+            order__created_at__gte=month_start,
+            item__kind="number",
+        ).exclude(
+            order__status__in=[Order.Status.DONE, Order.Status.CANCELLED]
+        ).aggregate(total=Sum("value_number"))["total"] or 0
+
         return {
             "visible_orders": visible.count(),
             "waiting_orders": waiting.count(),
             "in_progress_orders": in_progress.count(),
             "active_orders": waiting.count() + in_progress.count(),
             "completed_orders": completed.count(),
+            "month_completed_orders": month_completed_orders,
+            "month_pending_orders": month_pending_orders,
+            "month_completed_items": int(month_completed_items),
+            "month_pending_items": int(month_pending_items),
         }
 
     @staticmethod

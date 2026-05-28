@@ -13,7 +13,6 @@ app_name = "orders_technician"
 urlpatterns = [
     path("available/", views.technician_available_orders, name="available"),
     path("my/", views.technician_my_orders, name="my_orders"),
-    path("invoices/", views.technician_invoices, name="invoices"),
     path("<int:order_id>/", views.order_detail, name="detail"),
     path("<int:order_id>/accept/", views.order_accept, name="accept"),
     path("<int:order_id>/complete/", views.order_complete, name="complete"),

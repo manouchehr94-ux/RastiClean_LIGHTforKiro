@@ -11,6 +11,34 @@
     <p class="text-sm text-gray-500 mt-0.5">لیست فاکتورهای صادر شده برای سفارش‌های شما.</p>
 </div>
 
+{# Collapsible Summary #}
+{% if summary.invoice_count %}
+<div class="tech-summary-toggle">
+    <span style="font-weight:600; font-size:0.85rem;">خلاصه فاکتورها ({{ summary.invoice_count }} فاکتور)</span>
+    <span class="toggle-icon">▼</span>
+</div>
+<div class="tech-summary-body">
+    <div class="grid grid-cols-2 gap-3">
+        <div class="tech-field">
+            <span class="tech-field-label">تعداد فاکتورها:</span>
+            <span class="tech-field-value">{{ summary.invoice_count }}</span>
+        </div>
+        <div class="tech-field">
+            <span class="tech-field-label">مبلغ کل:</span>
+            <span class="tech-field-value">{{ summary.total_amount }} تومان</span>
+        </div>
+        <div class="tech-field">
+            <span class="tech-field-label">جمع خدمات:</span>
+            <span class="tech-field-value">{{ summary.service_total }} تومان</span>
+        </div>
+        <div class="tech-field">
+            <span class="tech-field-label">جمع ایاب و ذهاب:</span>
+            <span class="tech-field-value">{{ summary.travel_total }} تومان</span>
+        </div>
+    </div>
+</div>
+{% endif %}
+
 {% if invoices %}
 
 {# Desktop Table View #}
@@ -84,4 +112,14 @@
 {% endif %}
 
 </div>{# /tech-content-safe #}
+
+<script>
+document.querySelectorAll('.tech-summary-toggle').forEach(function(el) {
+    el.addEventListener('click', function() {
+        this.classList.toggle('open');
+        var body = this.nextElementSibling;
+        if (body) body.classList.toggle('open');
+    });
+});
+</script>
 {% endblock %}

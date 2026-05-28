@@ -29,6 +29,7 @@ from .views_redirects import (
     legacy_reports_redirect,
 )
 from apps.platform_core import views_tenant_payment_gateway as tenant_pg_views
+from apps.orders.views import technician_invoices as tech_invoices_view
 
 app_name = "tenants"
 
@@ -140,6 +141,7 @@ urlpatterns = [
     # =========================================================================
     path("tech/", include("apps.dashboard.urls_technician")),
     path("tech/orders/", include("apps.orders.urls_technician")),
+    path("tech/invoices/", tech_invoices_view, name="tech_invoices"),
     path("tech/notifications/", include("apps.notifications.urls_technician")),
 
     # =========================================================================
