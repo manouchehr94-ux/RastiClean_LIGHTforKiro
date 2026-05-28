@@ -47,7 +47,7 @@ class CompanyRegistrationService:
         - admin_phone: required, valid Iranian mobile, unique
         - admin_username: required, 3-50 chars, matches USERNAME_REGEX, unique, not reserved
         - admin_email: required, valid email format
-        - company_email: required, valid email format
+        - company_email: optional, validate format if provided
         - password: required, min 6 chars, matches password_confirm
         - company_name: required
 
@@ -70,14 +70,11 @@ class CompanyRegistrationService:
         elif Company.objects.filter(code=company_code).exists():
             errors["company_code"] = "این کد شرکت قبلاً استفاده شده است."
 
-        # Company email
+        # Company email (OPTIONAL — many Iranian service companies don't have one)
         company_email = (data.get("company_email") or "").strip().lower()
-        if not company_email:
-            errors["company_email"] = "ایمیل شرکت الزامی است."
-        elif "@" not in company_email or "." not in company_email.split("@")[-1]:
-            errors["company_email"] = "فرمت ایمیل شرکت معتبر نیست."
-        elif Company.objects.filter(email=company_email).exists():
-            errors["company_email"] = "این ایمیل شرکت قبلاً استفاده شده است."
+        if company_email:
+            if "@" not in company_email or "." not in company_email.split("@")[-1]:
+                errors["company_email"] = "فرمت ایمیل شرکت معتبر نیست."
 
         # Admin phone (for OTP only, NOT unique — same person may have multiple accounts)
         admin_phone = (data.get("admin_phone") or "").strip()
