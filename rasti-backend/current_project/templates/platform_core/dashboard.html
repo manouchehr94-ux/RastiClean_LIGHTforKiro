@@ -6,7 +6,7 @@
 {% block user_role_label %}مدیر پلتفرم{% endblock %}
 {% block page_title %}داشبورد پلتفرم{% endblock %}
 {% block page_description %}نمای کلی عملکرد سیستم{% endblock %}
-{% block logout_url %}/loginlogin/logout/{% endblock %}
+{% block logout_url %}/owner-platform/logout/{% endblock %}
 
 {% block sidebar_nav %}
 {% include "includes/nav_platform.html" %}
@@ -23,7 +23,7 @@
 
 {# Quick Actions #}
 <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
-    <a href="/loginlogin/companies/create/" class="flex items-center gap-3 p-4 bg-white rounded-xl border border-gray-100 shadow-sm hover:shadow-md hover:border-brand-200 transition-smooth group">
+    <a href="/owner-platform/companies/create/" class="flex items-center gap-3 p-4 bg-white rounded-xl border border-gray-100 shadow-sm hover:shadow-md hover:border-brand-200 transition-smooth group">
         <div class="w-10 h-10 rounded-lg bg-brand-50 flex items-center justify-center group-hover:bg-brand-100 transition-smooth">
             <svg class="w-5 h-5 text-brand-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
         </div>
@@ -32,7 +32,7 @@
             <p class="text-xs text-gray-500">ایجاد شرکت</p>
         </div>
     </a>
-    <a href="/loginlogin/plans/" class="flex items-center gap-3 p-4 bg-white rounded-xl border border-gray-100 shadow-sm hover:shadow-md hover:border-brand-200 transition-smooth group">
+    <a href="/owner-platform/plans/" class="flex items-center gap-3 p-4 bg-white rounded-xl border border-gray-100 shadow-sm hover:shadow-md hover:border-brand-200 transition-smooth group">
         <div class="w-10 h-10 rounded-lg bg-amber-50 flex items-center justify-center group-hover:bg-amber-100 transition-smooth">
             <svg class="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/></svg>
         </div>
@@ -41,7 +41,7 @@
             <p class="text-xs text-gray-500">ویرایش و ایجاد</p>
         </div>
     </a>
-    <a href="/loginlogin/reports/" class="flex items-center gap-3 p-4 bg-white rounded-xl border border-gray-100 shadow-sm hover:shadow-md hover:border-brand-200 transition-smooth group">
+    <a href="/owner-platform/reports/" class="flex items-center gap-3 p-4 bg-white rounded-xl border border-gray-100 shadow-sm hover:shadow-md hover:border-brand-200 transition-smooth group">
         <div class="w-10 h-10 rounded-lg bg-emerald-50 flex items-center justify-center group-hover:bg-emerald-100 transition-smooth">
             <svg class="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
         </div>
@@ -56,7 +56,7 @@
 <div class="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
     <div class="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
         <h3 class="text-sm font-semibold text-gray-800">شرکت‌های اخیر</h3>
-        <a href="/loginlogin/companies/" class="text-xs text-brand-600 hover:text-brand-700 font-medium">مشاهده همه</a>
+        <a href="/owner-platform/companies/" class="text-xs text-brand-600 hover:text-brand-700 font-medium">مشاهده همه</a>
     </div>
     {% if recent_companies %}
     <div class="overflow-x-auto">
@@ -73,7 +73,7 @@
                 {% for c in recent_companies %}
                 <tr class="hover:bg-gray-50/50 transition-colors">
                     <td class="px-5 py-3">
-                        <a href="/loginlogin/companies/{{ c.id }}/" class="text-sm font-medium text-gray-900 hover:text-brand-600">{{ c.name }}</a>
+                        <a href="/owner-platform/companies/{{ c.id }}/" class="text-sm font-medium text-gray-900 hover:text-brand-600">{{ c.name }}</a>
                     </td>
                     <td class="px-5 py-3 text-sm text-gray-500 font-mono">{{ c.code }}</td>
                     <td class="px-5 py-3">
@@ -90,7 +90,7 @@
         </table>
     </div>
     {% else %}
-    {% include "includes/components/empty_state.html" with title="هنوز شرکتی ثبت نشده" description="اولین شرکت خود را ایجاد کنید." icon="company" action_url="/loginlogin/companies/create/" action_label="ایجاد شرکت" %}
+    {% include "includes/components/empty_state.html" with title="هنوز شرکتی ثبت نشده" description="اولین شرکت خود را ایجاد کنید." icon="company" action_url="/owner-platform/companies/create/" action_label="ایجاد شرکت" %}
     {% endif %}
 </div>
 {% endblock %}

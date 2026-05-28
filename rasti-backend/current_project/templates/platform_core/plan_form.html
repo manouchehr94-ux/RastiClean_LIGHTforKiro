@@ -5,7 +5,7 @@
 {% block sidebar_subtitle %}پنل مدیریت پلتفرم{% endblock %}
 {% block user_role_label %}مدیر پلتفرم{% endblock %}
 {% block page_title %}{% if is_edit %}ویرایش پلن{% else %}پلن جدید{% endif %}{% endblock %}
-{% block logout_url %}/loginlogin/logout/{% endblock %}
+{% block logout_url %}/owner-platform/logout/{% endblock %}
 
 {% block sidebar_nav %}
 {% include "includes/nav_platform.html" %}
@@ -69,7 +69,7 @@
                 <button type="submit" class="px-5 py-2.5 bg-brand-600 text-white text-sm font-semibold rounded-xl hover:bg-brand-700 transition-smooth">
                     {% if is_edit %}ذخیره تغییرات{% else %}ایجاد پلن{% endif %}
                 </button>
-                <a href="/loginlogin/plans/" class="text-sm text-gray-500 hover:text-gray-700">انصراف</a>
+                <a href="/owner-platform/plans/" class="text-sm text-gray-500 hover:text-gray-700">انصراف</a>
             </div>
         </form>
     </div>

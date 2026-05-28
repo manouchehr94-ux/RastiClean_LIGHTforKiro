@@ -1,8 +1,8 @@
 """
 Platform Core - URL Configuration.
 
-These URLs are served under /loginlogin/ prefix.
-Only accessible by PLATFORM_OWNER.
+These URLs are served under /owner-platform/ prefix.
+Only accessible by PLATFORM_OWNER role.
 """
 from django.urls import path
 
@@ -13,9 +13,9 @@ from . import views
 app_name = "platform_core"
 
 urlpatterns = [
-    # Auth
-    path("", auth_views.platform_login, name="login"),
-    path("logout/", auth_views.platform_logout, name="logout"),
+    # Root of /owner-platform/ → redirect to dashboard
+    path("", views.platform_dashboard, name="root"),
+    path("logout/", auth_views.unified_logout, name="logout"),
 
     # Dashboard + Reports
     path("dashboard/", views.platform_dashboard, name="dashboard"),

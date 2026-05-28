@@ -6,14 +6,14 @@
 {% block user_role_label %}مدیر پلتفرم{% endblock %}
 {% block page_title %}مدیریت اشتراک‌ها{% endblock %}
 {% block page_description %}وضعیت اشتراک شرکت‌ها{% endblock %}
-{% block logout_url %}/loginlogin/logout/{% endblock %}
+{% block logout_url %}/owner-platform/logout/{% endblock %}
 
 {% block sidebar_nav %}
 {% include "includes/nav_platform.html" %}
 {% endblock %}
 
 {% block navbar_actions %}
-<a href="/loginlogin/subscriptions/create/"
+<a href="/owner-platform/subscriptions/create/"
    class="inline-flex items-center gap-2 px-3 py-2 bg-brand-600 text-white text-sm font-medium rounded-lg hover:bg-brand-700 transition-smooth">
     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
     <span class="hidden sm:inline">اشتراک جدید</span>
@@ -55,15 +55,15 @@
                     <td class="px-5 py-3 text-sm text-gray-500">{{ s.expires_at|date:"Y/m/d" }}</td>
                     <td class="px-5 py-3">
                         <div class="flex items-center gap-2">
-                            <a href="/loginlogin/subscriptions/{{ s.id }}/edit/" class="text-xs text-brand-600 hover:text-brand-700 font-medium">ویرایش</a>
+                            <a href="/owner-platform/subscriptions/{{ s.id }}/edit/" class="text-xs text-brand-600 hover:text-brand-700 font-medium">ویرایش</a>
                             {% if s.status != "active" %}
-                            <form method="post" action="/loginlogin/subscriptions/{{ s.id }}/activate/" class="inline">
+                            <form method="post" action="/owner-platform/subscriptions/{{ s.id }}/activate/" class="inline">
                                 {% csrf_token %}
                                 <button type="submit" class="text-xs text-emerald-600 hover:text-emerald-700 font-medium">فعال</button>
                             </form>
                             {% endif %}
                             {% if s.status != "cancelled" %}
-                            <form method="post" action="/loginlogin/subscriptions/{{ s.id }}/cancel/" class="inline">
+                            <form method="post" action="/owner-platform/subscriptions/{{ s.id }}/cancel/" class="inline">
                                 {% csrf_token %}
                                 <button type="submit" class="text-xs text-red-600 hover:text-red-700 font-medium">لغو</button>
                             </form>
@@ -78,7 +78,7 @@
 </div>
 {% else %}
 <div class="bg-white rounded-xl border border-gray-100 shadow-sm">
-    {% include "includes/components/empty_state.html" with title="اشتراکی ثبت نشده" description="اولین اشتراک را ایجاد کنید." action_url="/loginlogin/subscriptions/create/" action_label="اشتراک جدید" %}
+    {% include "includes/components/empty_state.html" with title="اشتراکی ثبت نشده" description="اولین اشتراک را ایجاد کنید." action_url="/owner-platform/subscriptions/create/" action_label="اشتراک جدید" %}
 </div>
 {% endif %}
 {% endblock %}
