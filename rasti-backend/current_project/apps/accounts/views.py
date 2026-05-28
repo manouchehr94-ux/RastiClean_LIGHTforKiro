@@ -26,7 +26,7 @@ def unified_login(request: HttpRequest) -> HttpResponse:
     POST: Authenticate any user (platform owner, admin, technician, customer),
           detect role, redirect to correct dashboard.
 
-    Since phone is globally unique, no company code is needed.
+    Username is the login identifier (globally unique).
     """
     # Already authenticated → redirect to appropriate dashboard
     if request.user.is_authenticated:
@@ -34,20 +34,20 @@ def unified_login(request: HttpRequest) -> HttpResponse:
         return redirect(url)
 
     error = ""
-    phone_value = ""
+    username_value = ""
 
     if request.method == "POST":
-        phone = request.POST.get("phone", "").strip()
+        username = request.POST.get("username", "").strip().lower()
         password = request.POST.get("password", "")
-        phone_value = phone
+        username_value = username
 
-        if not phone or not password:
-            error = "شماره تلفن و رمز عبور الزامی است."
+        if not username or not password:
+            error = "نام کاربری و رمز عبور الزامی است."
         else:
-            user = authenticate(request, username=phone, password=password)
+            user = authenticate(request, username=username, password=password)
 
             if user is None:
-                error = "شماره تلفن یا رمز عبور اشتباه است."
+                error = "نام کاربری یا رمز عبور اشتباه است."
             elif not user.is_active:
                 error = "حساب کاربری غیرفعال است."
             elif user.company and not user.company.is_active:
@@ -63,7 +63,7 @@ def unified_login(request: HttpRequest) -> HttpResponse:
 
     return render(request, "accounts/unified_login.html", {
         "error": error,
-        "phone_value": phone_value,
+        "username_value": username_value,
         "next": request.GET.get("next", ""),
     })
 

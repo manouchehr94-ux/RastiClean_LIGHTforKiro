@@ -33,22 +33,22 @@ class CompanyUserManager(BaseUserManager):
     """Custom manager for CompanyUser."""
 
     def create_user(
-        self, phone: str, password: str | None = None, **extra_fields
+        self, username: str, password: str | None = None, **extra_fields
     ) -> "CompanyUser":
-        if not phone:
-            raise ValueError("Phone number is required.")
-        user = self.model(phone=phone, **extra_fields)
+        if not username:
+            raise ValueError("Username is required.")
+        user = self.model(username=username.lower(), **extra_fields)
         user.set_password(password)
         user.save(using=self._db)
         return user
 
     def create_superuser(
-        self, phone: str, password: str | None = None, **extra_fields
+        self, username: str, password: str | None = None, **extra_fields
     ) -> "CompanyUser":
         extra_fields.setdefault("is_staff", True)
         extra_fields.setdefault("is_superuser", True)
         extra_fields.setdefault("role", UserRole.PLATFORM_OWNER)
-        return self.create_user(phone, password, **extra_fields)
+        return self.create_user(username, password, **extra_fields)
 
 
 class CompanyUser(AbstractBaseUser, PermissionsMixin):
@@ -57,7 +57,8 @@ class CompanyUser(AbstractBaseUser, PermissionsMixin):
 
     - Platform owners have company=None and role=PLATFORM_OWNER.
     - All other users are scoped to a company.
-    - Phone number is used as the primary identifier (common in Iran).
+    - Username is the primary login identifier.
+    - Phone is used for OTP/contact only.
     """
 
     company = models.ForeignKey(
@@ -68,7 +69,17 @@ class CompanyUser(AbstractBaseUser, PermissionsMixin):
         related_name="users",
         help_text="Null for platform owners.",
     )
-    phone = models.CharField(max_length=15, unique=True)
+    username = models.CharField(
+        max_length=50,
+        unique=True,
+        db_index=True,
+        help_text="Primary login identifier. Lowercase, letters/numbers/underscore/dash.",
+    )
+    phone = models.CharField(
+        max_length=15,
+        blank=True,
+        help_text="Mobile phone for OTP/contact. Not unique — same person may have multiple accounts.",
+    )
     email = models.EmailField(blank=True)
     first_name = models.CharField(max_length=100, blank=True)
     last_name = models.CharField(max_length=100, blank=True)
@@ -84,17 +95,17 @@ class CompanyUser(AbstractBaseUser, PermissionsMixin):
 
     objects = CompanyUserManager()
 
-    USERNAME_FIELD = "phone"
+    USERNAME_FIELD = "username"
     REQUIRED_FIELDS: list[str] = []
 
     class Meta:
         ordering = ["-date_joined"]
 
     def __str__(self) -> str:
-        return f"{self.get_full_name()} ({self.phone})"
+        return f"{self.get_full_name()} ({self.username})"
 
     def get_full_name(self) -> str:
-        return f"{self.first_name} {self.last_name}".strip() or self.phone
+        return f"{self.first_name} {self.last_name}".strip() or self.username
 
 
 class Technician(CompanyOwnedModel):

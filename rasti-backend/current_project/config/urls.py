@@ -39,6 +39,9 @@ from apps.accounts import views as auth_views
 from apps.api.urls import auth_urlpatterns, platform_urlpatterns, tenant_urlpatterns
 from apps.platform_core.health import health_check, health_db_check
 
+# Public availability check API
+from apps.public import api_views as public_api
+
 
 # =============================================================================
 # HELPER VIEWS
@@ -121,6 +124,10 @@ urlpatterns = [
     # =========================================================================
     # REST API ROUTES
     # =========================================================================
+    path("api/public/check-username/", public_api.check_username, name="api-check-username"),
+    path("api/public/check-company-code/", public_api.check_company_code, name="api-check-company-code"),
+    path("api/public/check-admin-email/", public_api.check_admin_email, name="api-check-admin-email"),
+    path("api/public/check-company-email/", public_api.check_company_email, name="api-check-company-email"),
     path("api/auth/", include((auth_urlpatterns, "api"), namespace="api-auth")),
     path("api/platform/", include((platform_urlpatterns, "api"), namespace="api-platform")),
     path("api/<slug:company_code>/", include((tenant_urlpatterns, "api"), namespace="api-tenant")),

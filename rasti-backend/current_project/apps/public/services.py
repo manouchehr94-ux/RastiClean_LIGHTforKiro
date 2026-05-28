@@ -25,6 +25,15 @@ from apps.tenants.models import (
 
 logger = logging.getLogger(__name__)
 
+USERNAME_REGEX = re.compile(r"^[a-z0-9][a-z0-9_-]*$")
+
+RESERVED_SLUGS = {
+    "login", "logout", "register", "owner-platform", "admin", "api",
+    "static", "media", "pricing", "features", "about", "contact",
+    "health", "dashboard", "tech", "customer", "payments", "invoices",
+    "request", "favicon", "loginlogin",
+}
+
 
 class CompanyRegistrationService:
     """Service for company self-registration."""
@@ -36,6 +45,9 @@ class CompanyRegistrationService:
         Checks:
         - company_code: required, URL-safe (slug), unique
         - admin_phone: required, valid Iranian mobile, unique
+        - admin_username: required, 3-50 chars, matches USERNAME_REGEX, unique, not reserved
+        - admin_email: required, valid email format
+        - company_email: optional, validate format if provided
         - password: required, min 6 chars, matches password_confirm
         - company_name: required
 
@@ -58,7 +70,13 @@ class CompanyRegistrationService:
         elif Company.objects.filter(code=company_code).exists():
             errors["company_code"] = "این کد شرکت قبلاً استفاده شده است."
 
-        # Admin phone
+        # Company email (OPTIONAL — many Iranian service companies don't have one)
+        company_email = (data.get("company_email") or "").strip().lower()
+        if company_email:
+            if "@" not in company_email or "." not in company_email.split("@")[-1]:
+                errors["company_email"] = "فرمت ایمیل شرکت معتبر نیست."
+
+        # Admin phone (for OTP only, NOT unique — same person may have multiple accounts)
         admin_phone = (data.get("admin_phone") or "").strip()
         if not admin_phone:
             errors["admin_phone"] = "شماره تلفن مدیر الزامی است."
@@ -66,8 +84,29 @@ class CompanyRegistrationService:
             normalized = normalize_sms_phone_number(admin_phone)
             if normalized is None:
                 errors["admin_phone"] = "شماره تلفن وارد شده معتبر نیست. فرمت صحیح: 09xxxxxxxxx"
-            elif CompanyUser.objects.filter(phone=normalized).exists():
-                errors["admin_phone"] = "این شماره تلفن قبلاً در سیستم ثبت شده است."
+
+        # Admin username
+        admin_username = (data.get("admin_username") or "").strip().lower()
+        if not admin_username:
+            errors["admin_username"] = "نام کاربری الزامی است."
+        elif len(admin_username) < 3:
+            errors["admin_username"] = "نام کاربری باید حداقل ۳ کاراکتر باشد."
+        elif len(admin_username) > 50:
+            errors["admin_username"] = "نام کاربری حداکثر ۵۰ کاراکتر مجاز است."
+        elif not USERNAME_REGEX.match(admin_username):
+            errors["admin_username"] = "نام کاربری فقط می‌تواند شامل حروف انگلیسی کوچک، اعداد، _ و - باشد."
+        elif admin_username in RESERVED_SLUGS:
+            errors["admin_username"] = "این نام کاربری رزرو شده است."
+        elif CompanyUser.objects.filter(username=admin_username).exists():
+            errors["admin_username"] = "این نام کاربری قبلاً استفاده شده است."
+
+        # Admin email
+        # Admin email (format-only, NOT unique — same person may have multiple accounts)
+        admin_email = (data.get("admin_email") or "").strip().lower()
+        if not admin_email:
+            errors["admin_email"] = "ایمیل مدیر الزامی است."
+        elif "@" not in admin_email or "." not in admin_email.split("@")[-1]:
+            errors["admin_email"] = "فرمت ایمیل مدیر معتبر نیست."
 
         # Password
         password = data.get("password") or ""
@@ -95,9 +134,12 @@ class CompanyRegistrationService:
             "company_name": (data.get("company_name") or "").strip(),
             "company_code": (data.get("company_code") or "").strip().lower(),
             "company_phone": (data.get("company_phone") or "").strip(),
+            "company_email": (data.get("company_email") or "").strip().lower(),
             "city": (data.get("city") or "").strip(),
             "address": (data.get("address") or "").strip(),
             "admin_name": (data.get("admin_name") or "").strip(),
+            "admin_username": (data.get("admin_username") or "").strip().lower(),
+            "admin_email": (data.get("admin_email") or "").strip().lower(),
             "admin_phone": normalized_phone or "",
             "password": data.get("password") or "",
             "service_types": (data.get("service_types") or "").strip(),
@@ -168,6 +210,7 @@ class CompanyRegistrationService:
             code=session_data["company_code"],
             slug=session_data["company_code"],
             is_active=False,  # Pending review
+            email=session_data.get("company_email", ""),
             phone=session_data.get("company_phone", ""),
             address=session_data.get("address", ""),
         )
@@ -178,12 +221,14 @@ class CompanyRegistrationService:
         last_name = admin_name_parts[1] if len(admin_name_parts) > 1 else ""
 
         CompanyUser.objects.create_user(
-            phone=session_data["admin_phone"],
+            username=session_data["admin_username"],
             password=session_data["password"],
             company=company,
             role=UserRole.COMPANY_ADMIN,
             first_name=first_name,
             last_name=last_name,
+            phone=session_data["admin_phone"],
+            email=session_data.get("admin_email", ""),
         )
 
         # Create CompanySettings
