@@ -14,7 +14,7 @@ from .services_sms_credit import SMSCreditService
 
 
 @require_tenant_role("COMPANY_ADMIN", "COMPANY_STAFF")
-def tenant_sms_credit(request: HttpRequest) -> HttpResponse:
+def tenant_sms_credit(request: HttpRequest, **kwargs) -> HttpResponse:
     """Overview: balance, remaining SMS, pricing info."""
     company = request.company
     wallet = SMSCreditService.get_or_create_wallet(company)
@@ -30,7 +30,7 @@ def tenant_sms_credit(request: HttpRequest) -> HttpResponse:
 
 
 @require_tenant_role("COMPANY_ADMIN", "COMPANY_STAFF")
-def tenant_sms_recharge(request: HttpRequest) -> HttpResponse:
+def tenant_sms_recharge(request: HttpRequest, **kwargs) -> HttpResponse:
     """GET shows form with quick amounts, POST creates invoice."""
     company = request.company
     quick_amounts = [50000, 100000, 200000, 500000, 1000000]
@@ -66,7 +66,7 @@ def tenant_sms_recharge(request: HttpRequest) -> HttpResponse:
 
 
 @require_tenant_role("COMPANY_ADMIN", "COMPANY_STAFF")
-def tenant_sms_transactions(request: HttpRequest) -> HttpResponse:
+def tenant_sms_transactions(request: HttpRequest, **kwargs) -> HttpResponse:
     """List wallet transactions for this company."""
     company = request.company
     transactions = CompanySMSTransaction.objects.filter(company=company).select_related("wallet")[:50]
@@ -77,7 +77,7 @@ def tenant_sms_transactions(request: HttpRequest) -> HttpResponse:
 
 
 @require_tenant_role("COMPANY_ADMIN", "COMPANY_STAFF")
-def tenant_sms_invoices(request: HttpRequest) -> HttpResponse:
+def tenant_sms_invoices(request: HttpRequest, **kwargs) -> HttpResponse:
     """List platform invoices for this company."""
     company = request.company
     invoices = PlatformBillingInvoice.objects.filter(company=company)[:50]
@@ -88,7 +88,7 @@ def tenant_sms_invoices(request: HttpRequest) -> HttpResponse:
 
 
 @require_tenant_role("COMPANY_ADMIN", "COMPANY_STAFF")
-def tenant_sms_invoice_detail(request: HttpRequest, invoice_id: int) -> HttpResponse:
+def tenant_sms_invoice_detail(request: HttpRequest, invoice_id: int, **kwargs) -> HttpResponse:
     """Single invoice detail (no mark-paid button for tenants)."""
     company = request.company
     invoice = get_object_or_404(PlatformBillingInvoice, id=invoice_id, company=company)
