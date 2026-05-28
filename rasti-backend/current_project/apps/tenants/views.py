@@ -186,3 +186,27 @@ def redirect_legacy_notifications(request: HttpRequest, **kwargs) -> HttpRespons
     """
     from .views_redirects import legacy_notifications_redirect
     return legacy_notifications_redirect(request, **kwargs)
+
+
+
+def redirect_customer_to_public(request: HttpRequest, **kwargs) -> HttpResponse:
+    """
+    Customer portal is deprecated. Redirect to company public page.
+    Customer model is kept internally for order/contact data.
+    """
+    company = getattr(request, "company", None)
+    if company:
+        return redirect(f"/{company.code}/")
+    return redirect("/")
+
+
+
+def redirect_customer_admin_to_orders(request: HttpRequest, **kwargs) -> HttpResponse:
+    """
+    Customer management pages are deprecated.
+    Redirect to orders list. Customer data is kept internally for orders.
+    """
+    company = getattr(request, "company", None)
+    if company:
+        return redirect(f"/{company.code}/admin/orders/")
+    return redirect("/")

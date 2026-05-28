@@ -20,6 +20,8 @@ These legacy paths now redirect to the correct role-specific panel.
 from django.urls import include, path
 
 from . import views, views_admin, views_branding
+from apps.platform_core import views_tenant_sms_credit as tenant_sms_views
+from apps.platform_core import views_tenant_comm_settings as tenant_comm_views
 from .views_redirects import (
     legacy_notifications_redirect,
     legacy_orders_catch_all,
@@ -84,9 +86,9 @@ urlpatterns = [
     path("admin/technicians/<int:technician_id>/delete/", views_admin.admin_technician_delete, name="admin_technician_delete"),
     path("admin/technicians/<int:technician_id>/toggle-active/", views_admin.admin_technician_toggle_active, name="admin_technician_toggle_active"),
 
-    # Admin: Customers
-    path("admin/customers/", views_admin.admin_customer_list, name="admin_customers"),
-    path("admin/customers/<int:customer_id>/", views_admin.admin_customer_detail, name="admin_customer_detail"),
+    # Admin: Customers (DEPRECATED — redirects to orders. Customer model kept for order data.)
+    path("admin/customers/", views.redirect_customer_admin_to_orders, name="admin_customers"),
+    path("admin/customers/<int:customer_id>/", views.redirect_customer_admin_to_orders, name="admin_customer_detail"),
 
     # Admin: Orders management
     path("admin/orders/", views_admin.admin_order_list, name="admin_orders"),
@@ -119,6 +121,16 @@ urlpatterns = [
     path("admin/requests/", views_admin.admin_request_list, name="admin_requests"),
     path("admin/sms/", include("apps.sms.urls")),
 
+    # Admin: SMS Credit Wallet
+    path("admin/sms-credit/", tenant_sms_views.tenant_sms_credit, name="admin_sms_credit"),
+    path("admin/sms-credit/recharge/", tenant_sms_views.tenant_sms_recharge, name="admin_sms_recharge"),
+    path("admin/sms-credit/transactions/", tenant_sms_views.tenant_sms_transactions, name="admin_sms_transactions"),
+    path("admin/sms-credit/invoices/", tenant_sms_views.tenant_sms_invoices, name="admin_sms_invoices"),
+    path("admin/sms-credit/invoices/<int:invoice_id>/", tenant_sms_views.tenant_sms_invoice_detail, name="admin_sms_invoice_detail"),
+
+    # Admin: Communication Settings
+    path("admin/communication-settings/", tenant_comm_views.tenant_comm_settings, name="admin_communication_settings"),
+
     # Admin: Reports & Notifications
     path("admin/reports/", include("apps.reports.urls")),
     path("admin/notifications/", include("apps.notifications.urls")),
@@ -133,7 +145,9 @@ urlpatterns = [
     # =========================================================================
     # PUBLIC / CUSTOMER-FACING MODULES
     # =========================================================================
-    path("customer/", include("apps.dashboard.urls_customer")),
+    # Customer portal (deprecated — redirects to public page)
+    # Customer model is kept internally for order/contact data.
+    path("customer/", views.redirect_customer_to_public, name="customer_home_redirect"),
     path("invoices/", include("apps.invoices.urls")),
     path("payments/", include("apps.payments.urls")),
 

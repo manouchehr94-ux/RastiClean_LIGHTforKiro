@@ -107,8 +107,11 @@ class SMSQueueService:
 
         Phone number is normalized before queuing. If the phone number is
         invalid/empty, returns None without creating an outbox row.
-        This prevents invalid numbers from entering the outbox while keeping
-        order/invoice workflows safe (they simply get no SMS).
+
+        SMS Credit enforcement:
+        - Checks company SMS wallet balance before queuing.
+        - If insufficient credit: creates FAILED outbox record + BLOCKED transaction.
+        - If sufficient: debits wallet atomically, then queues SMS.
 
         Args:
             company: The tenant company.
@@ -121,13 +124,49 @@ class SMSQueueService:
             invoice_id: Optional related invoice ID.
 
         Returns:
-            Created SMSOutbox record (PENDING), or None if phone is invalid.
+            Created SMSOutbox record (PENDING or FAILED), or None if phone invalid.
         """
         # Phase 26E: Normalize and validate phone number
         normalized = normalize_sms_phone_number(phone_number)
         if normalized is None:
             return None
 
+        # === SMS CREDIT ENFORCEMENT ===
+        # Check wallet balance before queuing. Block if insufficient.
+        from apps.platform_core.services_sms_credit import SMSCreditService
+
+        if not SMSCreditService.has_sufficient_credit(company=company, message_text=message):
+            # Record BLOCKED wallet transaction
+            SMSCreditService.debit_for_sms(
+                company=company,
+                message_text=message,
+                description=f"مسدود: اعتبار پیامک ناکافی ({normalized})",
+            )
+            # Create FAILED outbox record so it appears in logs/diagnostics
+            provider = SMSProviderSelector.get_active_for_company(company=company)
+            outbox = SMSOutbox.objects.create(
+                company=company,
+                provider=provider,
+                template=template,
+                template_key=template_key,
+                phone_number=normalized,
+                message=message,
+                status=SMSOutbox.Status.FAILED,
+                error_message="اعتبار پیامک ناکافی است. لطفاً اعتبار شرکت را شارژ کنید.",
+                send_at=send_at,
+                order_id=order_id,
+                invoice_id=invoice_id,
+            )
+            return outbox
+
+        # Sufficient credit — debit wallet atomically
+        SMSCreditService.debit_for_sms(
+            company=company,
+            message_text=message,
+            description=f"ارسال پیامک به {normalized}",
+        )
+
+        # Queue the SMS normally
         provider = SMSProviderSelector.get_active_for_company(company=company)
 
         outbox = SMSOutbox.objects.create(

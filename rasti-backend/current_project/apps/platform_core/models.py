@@ -266,8 +266,8 @@ class PlatformPaymentTransaction(models.Model):
     Flow:
     1. Tenant creates recharge invoice (UNPAID)
     2. Payment transaction created (INITIATED)
-    3a. Manual: Platform Owner marks paid -> VERIFIED
-    3b. Future online: redirect to gateway -> callback -> VERIFIED/FAILED
+    3a. Manual: Platform Owner marks paid → VERIFIED
+    3b. Future online: redirect to gateway → callback → VERIFIED/FAILED
     4. If VERIFIED: invoice becomes PAID, wallet credited
 
     TODO (Future):
@@ -280,9 +280,9 @@ class PlatformPaymentTransaction(models.Model):
 
     class Provider(models.TextChoices):
         MANUAL = "MANUAL", "پرداخت دستی"
-        ZARINPAL_FUTURE = "ZARINPAL_FUTURE", "زرین\u200cپال (آینده)"
-        IDPAY_FUTURE = "IDPAY_FUTURE", "آیدی\u200cپی (آینده)"
-        PAYPING_FUTURE = "PAYPING_FUTURE", "پی\u200cپینگ (آینده)"
+        ZARINPAL_FUTURE = "ZARINPAL_FUTURE", "زرین‌پال (آینده)"
+        IDPAY_FUTURE = "IDPAY_FUTURE", "آیدی‌پی (آینده)"
+        PAYPING_FUTURE = "PAYPING_FUTURE", "پی‌پینگ (آینده)"
         OTHER_FUTURE = "OTHER_FUTURE", "سایر (آینده)"
 
     class Status(models.TextChoices):
@@ -338,7 +338,7 @@ class CommunicationTemplate(models.Model):
     """
 
     class EventKey(models.TextChoices):
-        COMPANY_REGISTERED = "COMPANY_REGISTERED", "ثبت\u200cنام شرکت"
+        COMPANY_REGISTERED = "COMPANY_REGISTERED", "ثبت‌نام شرکت"
         COMPANY_APPROVED = "COMPANY_APPROVED", "تأیید شرکت"
         ORDER_CREATED = "ORDER_CREATED", "ایجاد سفارش"
         ORDER_ASSIGNED = "ORDER_ASSIGNED", "تخصیص سفارش"
@@ -402,17 +402,17 @@ class CommunicationTemplateCompanySetting(models.Model):
         ]
 
     def __str__(self):
-        return f"{self.company.code} / {self.template.event_key} -> {'enabled' if self.is_enabled else 'disabled'}"
+        return f"{self.company.code} / {self.template.event_key} → {'enabled' if self.is_enabled else 'disabled'}"
 
 
 class PaymentGatewayProvider(models.TextChoices):
     """Available payment gateway providers."""
     MOCK = "MOCK", "آزمایشی (بدون اتصال)"
     MANUAL = "MANUAL", "پرداخت دستی"
-    ZARINPAL_FUTURE = "ZARINPAL_FUTURE", "زرین\u200cپال (آینده)"
+    ZARINPAL_FUTURE = "ZARINPAL_FUTURE", "زرین‌پال (آینده)"
     ZIBAL_FUTURE = "ZIBAL_FUTURE", "زیبال (آینده)"
-    IDPAY_FUTURE = "IDPAY_FUTURE", "آیدی\u200cپی (آینده)"
-    PAYPING_FUTURE = "PAYPING_FUTURE", "پی\u200cپینگ (آینده)"
+    IDPAY_FUTURE = "IDPAY_FUTURE", "آیدی‌پی (آینده)"
+    PAYPING_FUTURE = "PAYPING_FUTURE", "پی‌پینگ (آینده)"
 
 
 class PlatformPaymentGatewaySetting(models.Model):
