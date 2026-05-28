@@ -98,7 +98,7 @@
         </table>
     </div>
     {% else %}
-    {% include "includes/components/empty_state.html" with title="سفارشی ثبت نشده" description="اولین سفارش خود را ایجاد کنید." icon="orders" action_url=company.code|add:"/admin/orders/create/" action_label="ایجاد سفارش" %}
+    {% include "includes/components/empty_state.html" with title="سفارشی ثبت نشده" description="اولین سفارش خود را ایجاد کنید." icon="orders" action_label="ایجاد سفارش" %}
     {% endif %}
 </div>
 {% endblock %}

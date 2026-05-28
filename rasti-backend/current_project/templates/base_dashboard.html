@@ -1,10 +1,14 @@
 {# ============================================================================
    base_dashboard.html - BACKWARD COMPATIBILITY WRAPPER
-   
+
    This file is kept for existing templates that extend it.
    New templates should extend "layouts/dashboard.html" or "layouts/technician.html" directly.
    ============================================================================ #}
 {% extends "base.html" %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="/static/css/jalali_datepicker.css">
+{% endblock %}
 
 {% block body %}
 {% if request.user.is_authenticated and request.user.role == "TECHNICIAN" %}
@@ -29,36 +33,7 @@
     </header>
 
     <main class="max-w-4xl mx-auto px-4 py-5">
-        {% block content %}{% endblock %}
-    </main>
-
-    <nav class="fixed bottom-0 inset-x-0 z-30 bg-white/95 backdrop-blur-lg border-t border-gray-200 shadow-[0_-4px_20px_rgba(0,0,0,0.08)] lg:max-w-lg lg:mx-auto lg:bottom-4 lg:rounded-2xl lg:border lg:shadow-xl">
-        <div class="grid grid-cols-4 h-16">
-            <a href="/{{ request.company.code }}/tech/"
-               class="flex flex-col items-center justify-center gap-0.5 text-xs font-medium {% if request.path == '/'|add:request.company.code|add:'/tech/' %}text-brand-600{% else %}text-gray-500 hover:text-gray-700{% endif %} transition-smooth">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
-                <span>داشبورد</span>
-            </a>
-            <a href="/{{ request.company.code }}/tech/orders/available/"
-               class="flex flex-col items-center justify-center gap-0.5 text-xs font-medium {% if '/tech/orders/available/' in request.path %}text-brand-600{% else %}text-gray-500 hover:text-gray-700{% endif %} transition-smooth">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-                <span>سفارش جدید</span>
-            </a>
-            <a href="/{{ request.company.code }}/tech/orders/my/"
-               class="flex flex-col items-center justify-center gap-0.5 text-xs font-medium {% if '/tech/orders/my/' in request.path %}text-brand-600{% else %}text-gray-500 hover:text-gray-700{% endif %} transition-smooth">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
-                <span>سفارش‌های من</span>
-            </a>
-            <a href="/{{ request.company.code }}/tech/notifications/"
-               class="flex flex-col items-center justify-center gap-0.5 text-xs font-medium {% if '/tech/notifications/' in request.path %}text-brand-600{% else %}text-gray-500 hover:text-gray-700{% endif %} transition-smooth">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
-                <span>اعلان‌ها</span>
-            </a>
-        </div>
-    </nav>
-</div>
-
-{% else %}
+{% elif request.user.is_authenticated %}
 {# === ADMIN / OPERATOR / CUSTOMER LAYOUT === #}
 <div class="flex min-h-screen" id="app">
     {# Sidebar #}
@@ -114,11 +89,45 @@
             </div>
         </header>
         <main class="flex-1 p-4 lg:p-6">
-            {% block content %}{% endblock %}
+{% else %}
+{# === UNAUTHENTICATED FALLBACK (should not normally happen) === #}
+<div class="min-h-screen p-4 lg:p-6">
+    <main>
+{% endif %}
+
+{% block content %}{% endblock %}
+
+{% if request.user.is_authenticated and request.user.role == "TECHNICIAN" %}
+    </main>
+    <nav class="fixed bottom-0 inset-x-0 z-30 bg-white/95 backdrop-blur-lg border-t border-gray-200 shadow-[0_-4px_20px_rgba(0,0,0,0.08)] lg:max-w-lg lg:mx-auto lg:bottom-4 lg:rounded-2xl lg:border lg:shadow-xl">
+        <div class="grid grid-cols-4 h-16">
+            <a href="/{{ request.company.code }}/tech/"
+               class="flex flex-col items-center justify-center gap-0.5 text-xs font-medium {% if request.path == '/'|add:request.company.code|add:'/tech/' %}text-brand-600{% else %}text-gray-500 hover:text-gray-700{% endif %} transition-smooth">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+                <span>داشبورد</span>
+            </a>
+            <a href="/{{ request.company.code }}/tech/orders/available/"
+               class="flex flex-col items-center justify-center gap-0.5 text-xs font-medium {% if '/tech/orders/available/' in request.path %}text-brand-600{% else %}text-gray-500 hover:text-gray-700{% endif %} transition-smooth">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                <span>سفارش جدید</span>
+            </a>
+            <a href="/{{ request.company.code }}/tech/orders/my/"
+               class="flex flex-col items-center justify-center gap-0.5 text-xs font-medium {% if '/tech/orders/my/' in request.path %}text-brand-600{% else %}text-gray-500 hover:text-gray-700{% endif %} transition-smooth">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+                <span>سفارش‌های من</span>
+            </a>
+            <a href="/{{ request.company.code }}/tech/notifications/"
+               class="flex flex-col items-center justify-center gap-0.5 text-xs font-medium {% if '/tech/notifications/' in request.path %}text-brand-600{% else %}text-gray-500 hover:text-gray-700{% endif %} transition-smooth">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+                <span>اعلان‌ها</span>
+            </a>
+        </div>
+    </nav>
+</div>
+{% elif request.user.is_authenticated %}
         </main>
     </div>
 </div>
-
 <script>
 function toggleSidebar() {
     document.getElementById('sidebar').classList.toggle('translate-x-full');
@@ -130,11 +139,10 @@ function closeSidebar() {
 }
 document.addEventListener('keydown', function(e) { if (e.key === 'Escape') closeSidebar(); });
 </script>
+{% else %}
+    </main>
+</div>
 {% endif %}
-{% endblock %}
-
-{% block extra_head %}
-<link rel="stylesheet" href="/static/css/jalali_datepicker.css">
 {% endblock %}
 
 {% block extra_js %}
