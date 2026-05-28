@@ -77,7 +77,7 @@ def company_create(request: HttpRequest) -> HttpResponse:
                     address=form.cleaned_data.get("address", ""),
                     is_active=True,
                 )
-                return redirect("/loginlogin/companies/")
+                return redirect("/owner-platform/companies/")
     else:
         form = CompanyCreateForm()
     return render(request, "platform_core/company_form.html", {
@@ -113,7 +113,7 @@ def company_edit(request: HttpRequest, company_id: int) -> HttpResponse:
             company.phone = form.cleaned_data.get("phone", "")
             company.address = form.cleaned_data.get("address", "")
             company.save()
-            return redirect(f"/loginlogin/companies/{company.id}/")
+            return redirect(f"/owner-platform/companies/{company.id}/")
     else:
         form = CompanyEditForm(initial={
             "name": company.name, "email": company.email,
@@ -133,7 +133,7 @@ def company_activate(request: HttpRequest, company_id: int) -> HttpResponse:
     if request.method == "POST":
         company.is_active = True
         company.save(update_fields=["is_active", "updated_at"])
-    return redirect(f"/loginlogin/companies/{company.id}/")
+    return redirect(f"/owner-platform/companies/{company.id}/")
 
 
 @require_platform_owner
@@ -145,7 +145,7 @@ def company_deactivate(request: HttpRequest, company_id: int) -> HttpResponse:
     if request.method == "POST":
         company.is_active = False
         company.save(update_fields=["is_active", "updated_at"])
-    return redirect(f"/loginlogin/companies/{company.id}/")
+    return redirect(f"/owner-platform/companies/{company.id}/")
 
 
 # =============================================================================
@@ -182,7 +182,7 @@ def plan_create(request: HttpRequest) -> HttpResponse:
                     max_orders_per_month=form.cleaned_data["max_orders_per_month"],
                     is_active=form.cleaned_data.get("is_active", True),
                 )
-                return redirect("/loginlogin/plans/")
+                return redirect("/owner-platform/plans/")
     else:
         form = PlanForm()
     return render(request, "platform_core/plan_form.html", {
@@ -210,7 +210,7 @@ def plan_edit(request: HttpRequest, plan_id: int) -> HttpResponse:
             plan.max_orders_per_month = form.cleaned_data["max_orders_per_month"]
             plan.is_active = form.cleaned_data.get("is_active", True)
             plan.save()
-            return redirect("/loginlogin/plans/")
+            return redirect("/owner-platform/plans/")
     else:
         form = PlanForm(initial={
             "name": plan.name, "code": plan.code, "description": plan.description,
@@ -256,7 +256,7 @@ def subscription_create(request: HttpRequest) -> HttpResponse:
                     started_at=form.cleaned_data["started_at"],
                     expires_at=form.cleaned_data["expires_at"],
                 )
-                return redirect("/loginlogin/subscriptions/")
+                return redirect("/owner-platform/subscriptions/")
     else:
         form = SubscriptionForm()
 
@@ -284,7 +284,7 @@ def subscription_edit(request: HttpRequest, subscription_id: int) -> HttpRespons
             sub.started_at = form.cleaned_data["started_at"]
             sub.expires_at = form.cleaned_data["expires_at"]
             sub.save()
-            return redirect("/loginlogin/subscriptions/")
+            return redirect("/owner-platform/subscriptions/")
     else:
         form = SubscriptionForm(initial={
             "company_id": sub.company_id, "plan_id": sub.plan_id,
@@ -307,7 +307,7 @@ def subscription_activate(request: HttpRequest, subscription_id: int) -> HttpRes
     if request.method == "POST":
         sub.status = Subscription.Status.ACTIVE
         sub.save(update_fields=["status", "updated_at"])
-    return redirect("/loginlogin/subscriptions/")
+    return redirect("/owner-platform/subscriptions/")
 
 
 @require_platform_owner
@@ -319,4 +319,4 @@ def subscription_cancel(request: HttpRequest, subscription_id: int) -> HttpRespo
     if request.method == "POST":
         sub.status = Subscription.Status.CANCELLED
         sub.save(update_fields=["status", "updated_at"])
-    return redirect("/loginlogin/subscriptions/")
+    return redirect("/owner-platform/subscriptions/")

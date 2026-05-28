@@ -50,6 +50,7 @@ LOCAL_APPS = [
     "apps.reports",
     "apps.dashboard",
     "apps.api",
+    "apps.public",
 ]
 
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
@@ -171,11 +172,20 @@ PLATFORM_ADMIN_PREFIX = "loginlogin"
 # Paths that should bypass tenant resolution
 TENANT_EXEMPT_PREFIXES = [
     "favicon.ico",
+    "login",
+    "logout",
     "loginlogin",
+    "owner-platform",
+    "features",
+    "pricing",
+    "about",
+    "contact",
+    "register",
     "static",
     "media",
     "admin",
     "health",
+    "api",
 ]
 
 # =============================================================================
