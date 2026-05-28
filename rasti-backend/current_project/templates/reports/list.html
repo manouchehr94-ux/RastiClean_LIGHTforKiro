@@ -1,0 +1,59 @@
+{% extends "base_dashboard.html" %}
+
+{% block title %}گزارش‌ها - {{ company.name }}{% endblock %}
+{% block sidebar_brand %}{{ company.name }}{% endblock %}
+{% block logout_url %}/{{ company.code }}/login/logout/{% endblock %}
+{% block sidebar_nav %}
+<li><a href="/{{ company.code }}/admin/">داشبورد</a></li>
+<li><a href="/{{ company.code }}/admin/orders/">سفارش‌ها</a></li>
+<li><a href="/{{ company.code }}/admin/invoices/">فاکتورها</a></li>
+<li><a href="/{{ company.code }}/admin/reports/" class="active">گزارش‌ها</a></li>
+{% endblock %}
+
+{% block content %}
+<div class="page-header"><h1>گزارش‌ها</h1></div>
+
+<div class="stats-grid">
+    <div class="stat-card accent"><div class="stat-value">{{ order_summary.total }}</div><div class="stat-label">کل سفارش‌ها</div></div>
+    <div class="stat-card warning"><div class="stat-value">{{ order_summary.new }}</div><div class="stat-label">جدید</div></div>
+    <div class="stat-card"><div class="stat-value">{{ order_summary.in_progress }}</div><div class="stat-label">در حال انجام</div></div>
+    <div class="stat-card success"><div class="stat-value">{{ order_summary.done }}</div><div class="stat-label">تکمیل شده</div></div>
+    <div class="stat-card danger"><div class="stat-value">{{ order_summary.cancelled }}</div><div class="stat-label">لغو شده</div></div>
+</div>
+
+<div class="card">
+    <div class="card-header">درآمد</div>
+    <div class="table-wrapper"><table>
+        <tr><td>درآمد کل (فاکتورهای پرداخت شده)</td><td style="font-weight:700;color:#16a34a;">{{ revenue_summary.total_revenue }} تومان</td></tr>
+        <tr><td>تعداد فاکتور پرداخت شده</td><td>{{ revenue_summary.paid_invoice_count }}</td></tr>
+    </table></div>
+</div>
+
+<div class="card">
+    <div class="card-header">وضعیت فاکتورها</div>
+    <div class="table-wrapper"><table>
+        <tr><td>مجموع</td><td>{{ invoice_summary.total }}</td></tr>
+        <tr><td>پیش‌نویس</td><td>{{ invoice_summary.draft }}</td></tr>
+        <tr><td>صادر شده</td><td>{{ invoice_summary.issued }}</td></tr>
+        <tr><td>پرداخت شده</td><td>{{ invoice_summary.paid }}</td></tr>
+        <tr><td>لغو شده</td><td>{{ invoice_summary.cancelled }}</td></tr>
+    </table></div>
+</div>
+
+{% if technician_performance %}
+<div class="card">
+    <div class="card-header">عملکرد تکنسین‌ها</div>
+    <div class="table-wrapper"><table>
+        <thead><tr><th>تکنسین</th><th>تکمیل شده</th><th>فعال</th></tr></thead>
+        <tbody>{% for tp in technician_performance %}
+        <tr><td>{{ tp.technician.user.get_full_name }}</td><td>{{ tp.completed_orders }}</td><td>{{ tp.active_orders }}</td></tr>
+        {% endfor %}</tbody>
+    </table></div>
+</div>
+{% endif %}
+
+<div class="card">
+    <div class="card-header">درخواست‌های خدمات</div>
+    <p>مجموع درخواست‌ها: {{ request_summary.total_requests }}</p>
+</div>
+{% endblock %}

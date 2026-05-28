@@ -1,0 +1,50 @@
+{% extends "base_dashboard.html" %}
+
+{% block title %}فاکتور {{ invoice.invoice_number }} - {{ company.name }}{% endblock %}
+{% block sidebar_brand %}{{ company.name }}{% endblock %}
+{% block logout_url %}/{{ company.code }}/login/logout/{% endblock %}
+{% block sidebar_nav %}
+<li><a href="/{{ company.code }}/admin/">داشبورد</a></li>
+<li><a href="/{{ company.code }}/invoices/" class="active">فاکتورها</a></li>
+{% endblock %}
+
+{% block content %}
+<div class="page-header"><h1>فاکتور {{ invoice.invoice_number }}</h1></div>
+
+<div class="card">
+    <div class="table-wrapper"><table>
+        <tr><td style="font-weight:600;width:150px;">وضعیت</td><td><span class="badge badge-{{ invoice.status }}">{{ invoice.get_status_display }}</span></td></tr>
+        <tr><td style="font-weight:600;">مشتری</td><td>{{ invoice.customer|default:"-" }}</td></tr>
+        <tr><td style="font-weight:600;">جمع جزء</td><td>{{ invoice.subtotal }} تومان</td></tr>
+        <tr><td style="font-weight:600;">مالیات</td><td>{{ invoice.tax_amount }} تومان</td></tr>
+        <tr><td style="font-weight:600;">تخفیف</td><td>{{ invoice.discount_amount }} تومان</td></tr>
+        <tr><td style="font-weight:600;">مبلغ کل</td><td style="font-weight:700;color:#2563eb;">{{ invoice.total_amount }} تومان</td></tr>
+        <tr><td style="font-weight:600;">صدور</td><td>{{ invoice.issued_at|default:"-" }}</td></tr>
+        <tr><td style="font-weight:600;">پرداخت</td><td>{{ invoice.paid_at|default:"-" }}</td></tr>
+    </table></div>
+</div>
+
+{% if invoice.items.all %}
+<div class="card">
+    <div class="card-header">اقلام فاکتور</div>
+    <div class="table-wrapper"><table>
+        <thead><tr><th>شرح</th><th>تعداد</th><th>قیمت واحد</th><th>جمع</th></tr></thead>
+        <tbody>{% for item in invoice.items.all %}
+        <tr><td>{{ item.description }}</td><td>{{ item.quantity }}</td><td>{{ item.unit_price }}</td><td>{{ item.total_price }}</td></tr>
+        {% endfor %}</tbody>
+    </table></div>
+</div>
+{% endif %}
+
+{% if invoice.is_payable %}
+<a href="/{{ company.code }}/invoices/{{ invoice.id }}/pay/" class="btn btn-success">پرداخت فاکتور</a>
+{% endif %}
+
+{% if invoice.status != "cancelled" %}
+{% if invoice.public_code %}
+<a href="/{{ company.code }}/invoices/public/{{ invoice.public_code }}/print/" class="btn btn-primary">🖨️ چاپ / دانلود فاکتور</a>
+{% endif %}
+{% endif %}
+
+<p style="margin-top:1.5rem;"><a href="/{{ company.code }}/invoices/">بازگشت به لیست</a></p>
+{% endblock %}

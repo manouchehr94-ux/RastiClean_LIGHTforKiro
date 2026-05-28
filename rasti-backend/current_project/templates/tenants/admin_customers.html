@@ -1,0 +1,18 @@
+{% extends "base_dashboard.html" %}
+{% block title %}مشتریان - {{ company.name }}{% endblock %}
+{% block sidebar_brand %}{{ company.name }}{% endblock %}
+{% block logout_url %}/{{ company.code }}/login/logout/{% endblock %}
+{% block sidebar_nav %}<li><a href="/{{ company.code }}/admin/">داشبورد</a></li><li><a href="/{{ company.code }}/admin/customers/" class="active">مشتریان</a></li>{% endblock %}
+
+{% block content %}
+<div class="page-header"><h1>مشتریان</h1></div>
+{% if customers %}
+<div class="card"><div class="table-wrapper"><table>
+<thead><tr><th>نام</th><th>تلفن</th><th>ایمیل</th><th>عملیات</th></tr></thead>
+<tbody>{% for c in customers %}<tr>
+<td>{{ c.first_name }} {{ c.last_name }}</td><td>{{ c.phone }}</td><td>{{ c.email|default:"-" }}</td>
+<td><a href="/{{ company.code }}/admin/customers/{{ c.id }}/" class="btn btn-sm btn-outline">جزئیات</a></td>
+</tr>{% endfor %}</tbody>
+</table></div></div>
+{% else %}<div class="card"><p style="color:#64748b;">مشتری‌ای ثبت نشده.</p></div>{% endif %}
+{% endblock %}

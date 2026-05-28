@@ -1,0 +1,23 @@
+{% extends "base_dashboard.html" %}
+{% block title %}{% if is_edit %}ویرایش{% else %}ایجاد{% endif %} پلن - پلتفرم{% endblock %}
+{% block sidebar_brand %}پنل مدیریت پلتفرم{% endblock %}
+{% block logout_url %}/loginlogin/logout/{% endblock %}
+{% block sidebar_nav %}<li><a href="/loginlogin/dashboard/">داشبورد</a></li><li><a href="/loginlogin/plans/" class="active">پلن‌ها</a></li>{% endblock %}
+
+{% block content %}
+<div class="page-header"><h1>{% if is_edit %}ویرایش پلن{% else %}پلن جدید{% endif %}</h1></div>
+{% if error %}<div class="alert alert-error">{{ error }}</div>{% endif %}
+<div class="card" style="max-width:600px;"><form method="post">{% csrf_token %}
+<div class="form-group"><label>نام</label>{{ form.name }}</div>
+<div class="form-group"><label>کد</label>{{ form.code }}</div>
+<div class="form-group"><label>توضیحات</label>{{ form.description }}</div>
+<div class="form-group"><label>قیمت ماهانه (تومان)</label>{{ form.price_monthly }}</div>
+<div class="form-group"><label>قیمت سالانه (تومان)</label>{{ form.price_yearly }}</div>
+<div class="form-group"><label>حداکثر کاربران</label>{{ form.max_users }}</div>
+<div class="form-group"><label>حداکثر تکنسین</label>{{ form.max_technicians }}</div>
+<div class="form-group"><label>حداکثر سفارش/ماه</label>{{ form.max_orders_per_month }}</div>
+<div class="form-group"><label><input type="checkbox" name="is_active" {% if form.is_active.value %}checked{% endif %}> فعال</label></div>
+<button type="submit" class="btn btn-primary">{% if is_edit %}ذخیره{% else %}ایجاد{% endif %}</button>
+<a href="/loginlogin/plans/" class="btn btn-outline" style="margin-right:0.5rem;">انصراف</a>
+</form></div>
+{% endblock %}

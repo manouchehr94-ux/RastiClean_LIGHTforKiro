@@ -1,0 +1,17 @@
+# Backend
+rasti-backendcurrent_projectvenv
+rasti-backendcurrent_projectdb.sqlite3
+__pycache__
+.pyc
+
+# Frontend
+rasti-frontendnode_modules
+rasti-frontend.next
+
+# Environment
+.env
+.env.local
+
+# OS
+.DS_Store
+Thumbs.db

@@ -1,0 +1,59 @@
+{% extends "base_dashboard.html" %}
+
+{% block title %}پنل نیرو - {{ company.name }}{% endblock %}
+{% block sidebar_brand %}{{ company.name }}{% endblock %}
+{% block logout_url %}/{{ company.code }}/login/logout/{% endblock %}
+
+{% block sidebar_nav %}
+<li><a href="/{{ company.code }}/tech/" class="active">داشبورد</a></li>
+<li><a href="/{{ company.code }}/tech/orders/available/">سفارش‌های جدید</a></li>
+<li><a href="/{{ company.code }}/tech/orders/my/">سفارش‌های من</a></li>
+<li><a href="/{{ company.code }}/tech/notifications/">اعلان‌ها</a></li>
+{% endblock %}
+
+{% block content %}
+<div class="page-header technician-page-header">
+    <div>
+        <h1>پنل نیرو</h1>
+        <p class="muted-text">وضعیت سفارش‌های امروز و کارتابل شما</p>
+    </div>
+</div>
+
+<div class="technician-quick-actions">
+    <a href="/{{ company.code }}/tech/orders/available/" class="quick-action-card primary">
+        <strong>{{ stats.visible_orders|default:"0" }}</strong>
+        <span>سفارش جدید قابل بررسی</span>
+    </a>
+    <a href="/{{ company.code }}/tech/orders/my/?status=waiting" class="quick-action-card warning">
+        <strong>{{ stats.waiting_orders|default:"0" }}</strong>
+        <span>در انتظار شروع کار</span>
+    </a>
+    <a href="/{{ company.code }}/tech/orders/my/?status=in_progress" class="quick-action-card accent">
+        <strong>{{ stats.in_progress_orders|default:"0" }}</strong>
+        <span>در حال انجام</span>
+    </a>
+    <a href="/{{ company.code }}/tech/orders/my/?status=done" class="quick-action-card success">
+        <strong>{{ stats.completed_orders|default:"0" }}</strong>
+        <span>انجام‌شده</span>
+    </a>
+</div>
+
+<div class="card">
+    <div class="card-header">سفارش‌های اخیر من</div>
+    {% if recent_orders %}
+    <div class="technician-recent-list">
+        {% for order in recent_orders %}
+        <a href="/{{ company.code }}/tech/orders/{{ order.id }}/" class="technician-recent-row">
+            <div>
+                <strong>#{{ order.id }} · {{ order.display_customer_name|default:"مشتری" }}</strong>
+                <span>{{ order.service_category.title|default:"بدون رسته" }}{% if order.display_service_date_jalali %} · {{ order.display_service_date_jalali }}{% endif %}</span>
+            </div>
+            <span class="badge badge-{{ order.status }}">{{ order.get_status_display }}</span>
+        </a>
+        {% endfor %}
+    </div>
+    {% else %}
+    <p class="muted-text">هنوز سفارشی به شما تخصیص داده نشده است.</p>
+    {% endif %}
+</div>
+{% endblock %}

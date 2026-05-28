@@ -1,0 +1,92 @@
+{% extends "base_dashboard.html" %}
+
+{% block title %}سفارش‌های من - {{ company.name }}{% endblock %}
+{% block sidebar_brand %}{{ company.name }}{% endblock %}
+{% block logout_url %}/{{ company.code }}/login/logout/{% endblock %}
+{% block sidebar_nav %}
+<li><a href="/{{ company.code }}/tech/">داشبورد</a></li>
+<li><a href="/{{ company.code }}/tech/orders/available/">سفارش‌های جدید</a></li>
+<li><a href="/{{ company.code }}/tech/orders/my/" class="active">سفارش‌های من</a></li>
+{% endblock %}
+
+{% block content %}
+<div class="page-header technician-page-header">
+    <div>
+        <h1>سفارش‌های من</h1>
+        <p class="muted-text">سفارش‌هایی که پذیرفته‌اید یا توسط ادمین به شما تخصیص داده شده‌اند.</p>
+    </div>
+</div>
+
+<div class="technician-filter-strip">
+    <a href="/{{ company.code }}/tech/orders/my/" class="filter-pill {% if not status_filter %}active{% endif %}">همه</a>
+    <a href="/{{ company.code }}/tech/orders/my/?status=waiting" class="filter-pill {% if status_filter == 'waiting' %}active{% endif %}">در انتظار خدمت</a>
+    <a href="/{{ company.code }}/tech/orders/my/?status=in_progress" class="filter-pill {% if status_filter == 'in_progress' %}active{% endif %}">در حال انجام</a>
+    <a href="/{{ company.code }}/tech/orders/my/?status=done" class="filter-pill {% if status_filter == 'done' %}active{% endif %}">انجام‌شده</a>
+    <a href="/{{ company.code }}/tech/orders/my/?status=cancel_requested" class="filter-pill {% if status_filter == 'cancel_requested' %}active{% endif %}">درخواست لغو</a>
+</div>
+
+{% if orders_with_items %}
+<div class="technician-order-list">
+{% for entry in orders_with_items %}
+<article class="technician-order-card">
+    <div class="technician-order-card-head">
+        <div>
+            <strong>سفارش #{{ entry.order.id }}</strong>
+            <p>{{ entry.order.service_category.title|default:"بدون رسته" }}</p>
+        </div>
+        <span class="badge badge-{{ entry.order.status }}">{{ entry.order.get_status_display }}</span>
+    </div>
+
+    <div class="info-grid compact-info">
+        <div><span>تاریخ انجام</span><strong>{{ entry.order.display_service_date_jalali|default:"-" }}</strong></div>
+        <div><span>مشتری</span><strong>{{ entry.order.display_customer_name|default:"-" }}</strong></div>
+        <div><span>شماره تماس</span><strong dir="ltr">{{ entry.order.display_customer_phone|default:"-" }}</strong></div>
+        <div class="wide"><span>آدرس</span><strong>{{ entry.order.address|default:"-" }}</strong></div>
+    </div>
+
+    {% if entry.item_values %}
+    <div class="item-chip-list">
+        {% for iv in entry.item_values %}
+        <span class="item-chip">{{ iv.definition.title }}: <strong>{% if iv.definition.kind == "bool" %}{% if iv.value %}بله{% else %}خیر{% endif %}{% elif iv.value != None %}{{ iv.value }}{% if iv.definition.kind == "money" %} تومان{% endif %}{% else %}-{% endif %}</strong></span>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <div class="technician-card-actions">
+        {% if entry.order.status == "waiting" %}
+        <form method="post" action="/{{ company.code }}/tech/orders/{{ entry.order.id }}/status/">
+            {% csrf_token %}
+            <button type="submit" name="new_status" value="in_progress" class="btn btn-primary btn-block">شروع کار</button>
+        </form>
+        {% endif %}
+
+        {% if entry.order.status == "in_progress" %}
+        <form method="post" action="/{{ company.code }}/tech/orders/{{ entry.order.id }}/status/">
+            {% csrf_token %}
+            <button type="submit" name="new_status" value="done" class="btn btn-success btn-block">اتمام کار</button>
+        </form>
+        {% endif %}
+
+        {% if entry.order.status == "waiting" or entry.order.status == "in_progress" %}
+        <details class="cancel-details">
+            <summary>درخواست لغو</summary>
+            <form method="post" action="/{{ company.code }}/tech/orders/{{ entry.order.id }}/status/">
+                {% csrf_token %}
+                <textarea name="note" class="form-control" rows="2" placeholder="دلیل درخواست لغو"></textarea>
+                <button type="submit" name="new_status" value="cancel_requested" class="btn btn-danger btn-block">ثبت درخواست لغو</button>
+            </form>
+        </details>
+        {% endif %}
+
+        <a href="/{{ company.code }}/tech/orders/{{ entry.order.id }}/" class="btn btn-outline btn-block">جزئیات</a>
+    </div>
+</article>
+{% endfor %}
+</div>
+{% else %}
+<div class="card empty-state">
+    <h3>سفارشی در این بخش وجود ندارد</h3>
+    <p>بعد از پذیرش سفارش، سفارش‌های فعال شما اینجا نمایش داده می‌شوند.</p>
+</div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,19 @@
+{% extends "base_dashboard.html" %}
+{% block title %}{% if is_edit %}ویرایش{% else %}ایجاد{% endif %} شرکت - پلتفرم{% endblock %}
+{% block sidebar_brand %}پنل مدیریت پلتفرم{% endblock %}
+{% block logout_url %}/loginlogin/logout/{% endblock %}
+{% block sidebar_nav %}<li><a href="/loginlogin/dashboard/">داشبورد</a></li><li><a href="/loginlogin/companies/" class="active">شرکت‌ها</a></li>{% endblock %}
+
+{% block content %}
+<div class="page-header"><h1>{% if is_edit %}ویرایش شرکت{% else %}شرکت جدید{% endif %}</h1></div>
+{% if error %}<div class="alert alert-error">{{ error }}</div>{% endif %}
+<div class="card" style="max-width:600px;"><form method="post">{% csrf_token %}
+<div class="form-group"><label>نام</label>{{ form.name }}</div>
+{% if not is_edit %}<div class="form-group"><label>کد (URL)</label>{{ form.code }}</div>{% endif %}
+<div class="form-group"><label>ایمیل</label>{{ form.email }}</div>
+<div class="form-group"><label>تلفن</label>{{ form.phone }}</div>
+<div class="form-group"><label>آدرس</label>{{ form.address }}</div>
+<button type="submit" class="btn btn-primary">{% if is_edit %}ذخیره{% else %}ایجاد{% endif %}</button>
+<a href="/loginlogin/companies/" class="btn btn-outline" style="margin-right:0.5rem;">انصراف</a>
+</form></div>
+{% endblock %}

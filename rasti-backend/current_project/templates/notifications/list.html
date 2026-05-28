@@ -1,0 +1,84 @@
+{% extends "base_dashboard.html" %}
+
+{% block title %}اعلان‌ها - {{ company.name }}{% endblock %}
+{% block sidebar_brand %}{{ company.name }}{% endblock %}
+{% block logout_url %}/{{ company.code }}/login/logout/{% endblock %}
+{% block sidebar_nav %}
+{% if request.user.role == "TECHNICIAN" %}
+<li><a href="/{{ company.code }}/tech/">داشبورد</a></li>
+<li><a href="/{{ company.code }}/tech/notifications/" class="active">اعلان‌ها</a></li>
+{% elif request.user.role == "COMPANY_ADMIN" or request.user.role == "COMPANY_STAFF" %}
+<li><a href="/{{ company.code }}/admin/">داشبورد</a></li>
+<li><a href="/{{ company.code }}/admin/notifications/" class="active">اعلان‌ها</a></li>
+{% else %}
+<li><a href="/{{ company.code }}/customer/">داشبورد</a></li>
+<li><a href="/{{ company.code }}/notifications/" class="active">اعلان‌ها</a></li>
+{% endif %}
+{% endblock %}
+
+{% block content %}
+{% if request.user.role == "TECHNICIAN" %}
+    {% with notification_base="/"|add:company.code|add:"/tech/notifications/" %}
+    <div class="page-header"><h1>اعلان‌ها ({{ unread_count }} خوانده نشده)</h1></div>
+
+    {% if notifications %}
+    {% for n in notifications %}
+    <div class="notif-item {% if not n.is_read %}unread{% endif %}">
+        <div>
+            <div class="notif-title">{{ n.title }}</div>
+            <div class="notif-msg">{{ n.message }}</div>
+        </div>
+        <div style="text-align: left;">
+            <div class="notif-time">{{ n.created_at|date:"Y/m/d H:i" }}</div>
+            {% if not n.is_read %}<a href="{{ notification_base }}{{ n.id }}/read/" class="btn btn-sm btn-outline" style="margin-top:0.25rem;">خوانده شد</a>{% endif %}
+        </div>
+    </div>
+    {% endfor %}
+    {% else %}
+    <div class="card"><p style="color:#64748b;">اعلانی وجود ندارد.</p></div>
+    {% endif %}
+    {% endwith %}
+{% elif request.user.role == "COMPANY_ADMIN" or request.user.role == "COMPANY_STAFF" %}
+    {% with notification_base="/"|add:company.code|add:"/admin/notifications/" %}
+    <div class="page-header"><h1>اعلان‌ها ({{ unread_count }} خوانده نشده)</h1></div>
+
+    {% if notifications %}
+    {% for n in notifications %}
+    <div class="notif-item {% if not n.is_read %}unread{% endif %}">
+        <div>
+            <div class="notif-title">{{ n.title }}</div>
+            <div class="notif-msg">{{ n.message }}</div>
+        </div>
+        <div style="text-align: left;">
+            <div class="notif-time">{{ n.created_at|date:"Y/m/d H:i" }}</div>
+            {% if not n.is_read %}<a href="{{ notification_base }}{{ n.id }}/read/" class="btn btn-sm btn-outline" style="margin-top:0.25rem;">خوانده شد</a>{% endif %}
+        </div>
+    </div>
+    {% endfor %}
+    {% else %}
+    <div class="card"><p style="color:#64748b;">اعلانی وجود ندارد.</p></div>
+    {% endif %}
+    {% endwith %}
+{% else %}
+    {% with notification_base="/"|add:company.code|add:"/notifications/" %}
+    <div class="page-header"><h1>اعلان‌ها ({{ unread_count }} خوانده نشده)</h1></div>
+
+    {% if notifications %}
+    {% for n in notifications %}
+    <div class="notif-item {% if not n.is_read %}unread{% endif %}">
+        <div>
+            <div class="notif-title">{{ n.title }}</div>
+            <div class="notif-msg">{{ n.message }}</div>
+        </div>
+        <div style="text-align: left;">
+            <div class="notif-time">{{ n.created_at|date:"Y/m/d H:i" }}</div>
+            {% if not n.is_read %}<a href="{{ notification_base }}{{ n.id }}/read/" class="btn btn-sm btn-outline" style="margin-top:0.25rem;">خوانده شد</a>{% endif %}
+        </div>
+    </div>
+    {% endfor %}
+    {% else %}
+    <div class="card"><p style="color:#64748b;">اعلانی وجود ندارد.</p></div>
+    {% endif %}
+    {% endwith %}
+{% endif %}
+{% endblock %}

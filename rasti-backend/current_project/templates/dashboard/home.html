@@ -1,0 +1,49 @@
+{% extends "base_dashboard.html" %}
+
+{% block title %}داشبورد - {{ company.name }}{% endblock %}
+{% block sidebar_brand %}{{ company.name }}{% endblock %}
+{% block logout_url %}/{{ company.code }}/login/logout/{% endblock %}
+
+{% block sidebar_nav %}
+<li><a href="/{{ company.code }}/admin/" class="active">داشبورد</a></li>
+<li><a href="/{{ company.code }}/admin/orders/">سفارش‌ها</a></li>
+<li><a href="/{{ company.code }}/admin/invoices/">فاکتورها</a></li>
+<li><a href="/{{ company.code }}/admin/reports/">گزارش‌ها</a></li>
+<li><a href="/{{ company.code }}/admin/notifications/">اعلان‌ها</a></li>
+<li><a href="/{{ company.code }}/admin/page/">صفحه عمومی</a></li>
+<li><a href="/{{ company.code }}/admin/requests/">درخواست‌ها</a></li>
+<li><a href="/{{ company.code }}/admin/sms/outbox/">صندوق پیامک</a></li>
+<li><a href="/{{ company.code }}/admin/sms/templates/">قالب‌های پیامک</a></li>
+<li><a href="/{{ company.code }}/admin/sms/diagnostics/">تشخیص پیامک</a></li>
+{% endblock %}
+
+{% block content %}
+<div class="page-header"><h1>داشبورد {{ company.name }}</h1></div>
+
+<div class="stats-grid">
+    <div class="stat-card accent"><div class="stat-value">{{ stats.today_orders }}</div><div class="stat-label">سفارش امروز</div></div>
+    <div class="stat-card warning"><div class="stat-value">{{ stats.new_orders }}</div><div class="stat-label">جدید</div></div>
+    <div class="stat-card"><div class="stat-value">{{ stats.in_progress_orders }}</div><div class="stat-label">در حال انجام</div></div>
+    <div class="stat-card success"><div class="stat-value">{{ stats.done_orders }}</div><div class="stat-label">تکمیل شده</div></div>
+    <div class="stat-card danger"><div class="stat-value">{{ stats.unpaid_invoices }}</div><div class="stat-label">فاکتور پرداخت نشده</div></div>
+    <div class="stat-card success"><div class="stat-value">{{ stats.paid_invoices }}</div><div class="stat-label">فاکتور پرداخت شده</div></div>
+    <div class="stat-card accent"><div class="stat-value">{{ stats.total_revenue|default:"0" }}</div><div class="stat-label">درآمد کل (تومان)</div></div>
+    <div class="stat-card"><div class="stat-value">{{ stats.active_technicians }}</div><div class="stat-label">تکنسین فعال</div></div>
+</div>
+
+<div class="card">
+    <div class="card-header">سفارش‌های اخیر</div>
+    {% if recent_orders %}
+    <div class="table-wrapper"><table>
+        <thead><tr><th>#</th><th>عنوان</th><th>وضعیت</th><th>تاریخ</th></tr></thead>
+        <tbody>{% for order in recent_orders %}
+        <tr>
+            <td><a href="/{{ company.code }}/admin/orders/{{ order.id }}/">{{ order.id }}</a></td>
+            <td>{{ order.title }}</td>
+            <td><span class="badge badge-{{ order.status|cut:'_' }}">{{ order.get_status_display }}</span></td>
+            <td>{{ order.created_at|date:"Y/m/d" }}</td>
+        </tr>{% endfor %}</tbody>
+    </table></div>
+    {% else %}<p style="color:#64748b;">سفارشی ثبت نشده.</p>{% endif %}
+</div>
+{% endblock %}

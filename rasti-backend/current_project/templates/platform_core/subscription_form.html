@@ -1,0 +1,23 @@
+{% extends "base_dashboard.html" %}
+{% block title %}{% if is_edit %}ویرایش{% else %}ایجاد{% endif %} اشتراک - پلتفرم{% endblock %}
+{% block sidebar_brand %}پنل مدیریت پلتفرم{% endblock %}
+{% block logout_url %}/loginlogin/logout/{% endblock %}
+{% block sidebar_nav %}<li><a href="/loginlogin/dashboard/">داشبورد</a></li><li><a href="/loginlogin/subscriptions/" class="active">اشتراک‌ها</a></li>{% endblock %}
+
+{% block content %}
+<div class="page-header"><h1>{% if is_edit %}ویرایش اشتراک{% else %}اشتراک جدید{% endif %}</h1></div>
+{% if error %}<div class="alert alert-error">{{ error }}</div>{% endif %}
+<div class="card" style="max-width:600px;"><form method="post">{% csrf_token %}
+{% if not is_edit %}
+<div class="form-group"><label>شرکت</label>
+<select name="company_id" class="form-control">{% for c in companies %}<option value="{{ c.id }}">{{ c.name }} ({{ c.code }})</option>{% endfor %}</select></div>
+{% endif %}
+<div class="form-group"><label>پلن</label>
+<select name="plan_id" class="form-control">{% for p in plans %}<option value="{{ p.id }}" {% if is_edit and sub.plan_id == p.id %}selected{% endif %}>{{ p.name }}</option>{% endfor %}</select></div>
+<div class="form-group"><label>وضعیت</label>{{ form.status }}</div>
+<div class="form-group"><label>تاریخ شروع</label>{{ form.started_at }}</div>
+<div class="form-group"><label>تاریخ انقضا</label>{{ form.expires_at }}</div>
+<button type="submit" class="btn btn-primary">{% if is_edit %}ذخیره{% else %}ایجاد{% endif %}</button>
+<a href="/loginlogin/subscriptions/" class="btn btn-outline" style="margin-right:0.5rem;">انصراف</a>
+</form></div>
+{% endblock %}

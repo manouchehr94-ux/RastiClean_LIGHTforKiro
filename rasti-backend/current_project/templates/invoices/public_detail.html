@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>فاکتور {{ invoice.invoice_number }}</title>
+    <style>
+        body{font-family:Tahoma,Arial,sans-serif;background:#f8fafc;color:#0f172a;margin:0;padding:24px;}
+        .invoice{max-width:820px;margin:0 auto;background:white;border:1px solid #e2e8f0;border-radius:16px;padding:24px;box-shadow:0 8px 24px rgba(15,23,42,.06)}
+        .head{display:flex;justify-content:space-between;gap:16px;border-bottom:1px solid #e2e8f0;padding-bottom:16px;margin-bottom:16px;}
+        h1{margin:0;font-size:24px}.muted{color:#64748b}.badge{display:inline-block;padding:4px 10px;border-radius:999px;background:#e0f2fe;color:#0369a1;font-size:12px}
+        table{width:100%;border-collapse:collapse;margin-top:12px}th,td{padding:10px;border-bottom:1px solid #e2e8f0;text-align:right}th{background:#f8fafc}.total{font-weight:bold;font-size:18px}.footer{margin-top:24px;color:#475569;white-space:pre-line}
+        @media print{body{background:white;padding:0}.invoice{box-shadow:none;border:0}.no-print{display:none}}
+    </style>
+</head>
+<body>
+<div class="invoice">
+    <div class="head">
+        <div>
+            <h1>{{ company.name }}</h1>
+            <div class="muted">{{ company.phone|default:"" }}</div>
+        </div>
+        <div>
+            <div>شماره فاکتور: <strong>{{ invoice.invoice_number }}</strong></div>
+            <div>وضعیت: <span class="badge">{{ invoice.get_status_display }}</span></div>
+            <div class="muted">تاریخ صدور: {{ invoice.issued_at|default:"-" }}</div>
+        </div>
+    </div>
+
+    <table>
+        <tr><th>مشتری</th><td>{{ invoice.display_customer_name|default:"-" }}{% if invoice.display_customer_phone %} - {{ invoice.display_customer_phone }}{% endif %}</td></tr>
+        <tr><th>آدرس</th><td>{{ invoice.address_snapshot|default:"-" }}</td></tr>
+        <tr><th>خدمت</th><td>{{ invoice.service_title_snapshot|default:"-" }}</td></tr>
+        <tr><th>نیروی خدماتی</th><td>{{ invoice.technician_name_snapshot|default:"-" }}</td></tr>
+    </table>
+
+    <table>
+        <thead><tr><th>شرح</th><th>تعداد</th><th>قیمت واحد</th><th>تخفیف</th><th>جمع</th></tr></thead>
+        <tbody>{% for item in invoice.items.all %}<tr>
+            <td>{{ item.description }}</td><td>{{ item.quantity }}</td><td>{{ item.unit_price }}</td><td>{{ item.discount_amount }}</td><td>{{ item.total_price }}</td>
+        </tr>{% endfor %}</tbody>
+        <tfoot>
+            <tr><td colspan="4">جمع ردیف‌ها</td><td>{{ invoice.subtotal }}</td></tr>
+            <tr><td colspan="4">مالیات / افزوده</td><td>{{ invoice.tax_amount }}</td></tr>
+            <tr><td colspan="4">تخفیف کل</td><td>{{ invoice.discount_amount }}</td></tr>
+            <tr class="total"><td colspan="4">مبلغ نهایی</td><td>{{ invoice.total_amount }} تومان</td></tr>
+        </tfoot>
+    </table>
+
+    {% if invoice.notes %}<p class="muted">{{ invoice.notes }}</p>{% endif %}
+    <div class="footer">{{ invoice.footer_text }}</div>
+    <p class="no-print">
+        <button onclick="window.print()">چاپ فاکتور</button>
+        {% if invoice.public_code %}<a href="/{{ company.code }}/invoices/public/{{ invoice.public_code }}/print/" style="margin-right:12px;">نسخه چاپی</a>{% endif %}
+    </p>
+</div>
+</body>
+</html>

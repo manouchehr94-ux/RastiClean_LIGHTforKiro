@@ -1,0 +1,135 @@
+{% extends "base_dashboard.html" %}
+
+{% block title %}صندوق پیامک - {{ company.name }}{% endblock %}
+{% block sidebar_brand %}{{ company.name }}{% endblock %}
+{% block logout_url %}/{{ company.code }}/login/logout/{% endblock %}
+{% block sidebar_nav %}
+<li><a href="/{{ company.code }}/admin/">داشبورد</a></li>
+<li><a href="/{{ company.code }}/admin/sms/outbox/" class="active">صندوق پیامک</a></li>
+<li><a href="/{{ company.code }}/admin/sms/templates/">قالب‌های پیامک</a></li>
+<li><a href="/{{ company.code }}/admin/sms/diagnostics/">تشخیص پیامک</a></li>
+{% endblock %}
+
+{% block content %}
+<div class="page-header" style="display:flex;justify-content:space-between;align-items:center;">
+<h1>صندوق پیامک</h1>
+</div>
+
+
+{% if request.GET.bulk_sent or request.GET.bulk_failed or request.GET.bulk_skipped %}
+<div class="alert" style="background:#ecfdf5;border:1px solid #6ee7b7;color:#065f46;margin-bottom:1rem;">
+ارسال گروهی: ارسال شده {{ request.GET.bulk_sent|default:"0" }} · ناموفق {{ request.GET.bulk_failed|default:"0" }} · رد شده {{ request.GET.bulk_skipped|default:"0" }}
+</div>
+{% endif %}
+
+<div class="card" style="margin-bottom:1rem;">
+<form method="get" style="display:flex;gap:0.5rem;flex-wrap:wrap;align-items:flex-end;">
+<div>
+<label style="font-size:0.85rem;display:block;margin-bottom:0.25rem;">وضعیت</label>
+<select name="status" class="form-control" style="width:auto;min-width:130px;">
+<option value="">همه</option>
+{% for val, label in status_choices %}
+<option value="{{ val }}" {% if status_filter == val %}selected{% endif %}>{{ label }}</option>
+{% endfor %}
+</select>
+</div>
+<div>
+<label style="font-size:0.85rem;display:block;margin-bottom:0.25rem;">قالب</label>
+<select name="template_key" class="form-control" style="width:auto;min-width:160px;">
+<option value="">همه</option>
+{% for val, label in template_key_choices %}
+<option value="{{ val }}" {% if template_key_filter == val %}selected{% endif %}>{{ label }}</option>
+{% endfor %}
+</select>
+</div>
+<div>
+<label style="font-size:0.85rem;display:block;margin-bottom:0.25rem;">شماره گیرنده</label>
+<input type="text" name="q" value="{{ search_q }}" class="form-control" placeholder="09..." style="width:150px;">
+</div>
+<button type="submit" class="btn btn-primary btn-sm">فیلتر</button>
+{% if status_filter or template_key_filter or search_q %}
+<a href="/{{ company.code }}/admin/sms/outbox/" class="btn btn-outline btn-sm">پاک کردن فیلتر</a>
+{% endif %}
+</form>
+</div>
+
+{% if messages %}
+<form method="post" action="/{{ company.code }}/admin/sms/outbox/bulk-retry/" id="bulkForm">
+{% csrf_token %}
+<div class="card">
+<div style="display:flex;justify-content:space-between;align-items:center;padding:0.5rem 0;margin-bottom:0.5rem;">
+<label style="font-size:0.85rem;color:#64748b;"><input type="checkbox" id="selectAll" onclick="toggleAll(this)"> انتخاب همه قابل ارسال</label>
+<button type="submit" class="btn btn-success btn-sm">ارسال گروهی انتخاب‌شده‌ها</button>
+</div>
+<table>
+<thead><tr>
+<th style="width:30px;"></th>
+<th>شماره</th>
+<th>گیرنده</th>
+<th>وضعیت</th>
+<th>قالب</th>
+<th>ایجاد</th>
+<th>زمان ارسال مجاز</th>
+<th>زمان ارسال واقعی</th>
+<th>خطا</th>
+<th>عملیات</th>
+</tr></thead>
+<tbody>
+{% for msg in messages %}
+<tr>
+<td>
+{% if msg.status == "pending" or msg.status == "failed" %}
+<input type="checkbox" name="selected_ids" value="{{ msg.id }}" class="row-checkbox">
+{% endif %}
+</td>
+<td>{{ msg.id }}</td>
+<td><code>{{ msg.phone_number }}</code></td>
+<td><span class="badge badge-{{ msg.status }}">{{ msg.get_status_display }}</span></td>
+<td>{{ msg.template_key|default:"-" }}</td>
+<td>{{ msg.created_at|date:"Y/m/d H:i" }}</td>
+<td>{% if msg.send_at %}{{ msg.send_at|date:"Y/m/d H:i" }}{% else %}-{% endif %}</td>
+<td>{% if msg.sent_at %}{{ msg.sent_at|date:"Y/m/d H:i" }}{% else %}-{% endif %}</td>
+<td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ msg.error_message|default:"-"|truncatechars:60 }}</td>
+<td>
+{% if msg.status == "pending" or msg.status == "failed" %}
+<form method="post" action="/{{ company.code }}/admin/sms/outbox/{{ msg.id }}/send-now/" style="display:inline;">{% csrf_token %}
+<button type="submit" class="btn btn-sm btn-success">ارسال</button>
+</form>
+{% elif msg.status == "sent" %}
+<span style="color:#64748b;">ارسال شده</span>
+{% else %}
+<span style="color:#64748b;">-</span>
+{% endif %}
+</td>
+</tr>
+{% endfor %}
+</tbody>
+</table>
+</div>
+</form>
+
+{% if page_obj.paginator.num_pages > 1 %}
+<div style="display:flex;justify-content:center;gap:0.5rem;margin-top:1rem;flex-wrap:wrap;">
+{% if page_obj.has_previous %}
+<a href="?page={{ page_obj.previous_page_number }}{% if filter_qs %}&{{ filter_qs }}{% endif %}" class="btn btn-outline btn-sm">« قبلی</a>
+{% endif %}
+<span style="padding:0.4rem 0.75rem;color:#475569;">صفحه {{ page_obj.number }} از {{ page_obj.paginator.num_pages }}</span>
+{% if page_obj.has_next %}
+<a href="?page={{ page_obj.next_page_number }}{% if filter_qs %}&{{ filter_qs }}{% endif %}" class="btn btn-outline btn-sm">بعدی »</a>
+{% endif %}
+</div>
+{% endif %}
+
+{% else %}
+<div class="card"><p style="color:#64748b;">پیامکی یافت نشد.</p></div>
+{% endif %}
+
+<script>
+function toggleAll(source) {
+    var checkboxes = document.querySelectorAll('.row-checkbox');
+    for (var i = 0; i < checkboxes.length; i++) {
+        checkboxes[i].checked = source.checked;
+    }
+}
+</script>
+{% endblock %}

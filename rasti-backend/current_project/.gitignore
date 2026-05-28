@@ -1,0 +1,129 @@
+# Python cache/build artifacts
+__pycache__/
+**/__pycache__/
+*.py[cod]
+*$py.class
+*.pyo
+*.pyd
+*.so
+.Python
+*.egg-info/
+dist/
+build/
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Environment/private config
+.env
+.env.*
+!.env.example
+!**/.env.example
+local_settings.py
+
+# Django/local databases
+db.sqlite3
+*.sqlite
+*.sqlite3
+*.sqlite3-*
+*.db
+*.db-*
+
+# Django generated/runtime files
+staticfiles/
+media/
+*.log
+
+# Test/cache tools
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# IDE/OS
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# Temporary/backup/archive files
+*.tmp
+*.bak
+*.backup
+*.orig
+*.rej
+*.zip
+*.7z
+*.rar
+
+# Project policy: tests removed by user request
+**/tests.py
+**/tests_*.py
+**/test_*.py
+**/tests/
+**/__tests__/
+current_project/config/settings/test.py
+current_project/scripts/test_*.ps1
+
+# Phase 28 baseline hardening
+__pycache__/
+**/__pycache__/
+*.py[cod]
+*.pyo
+*$py.class
+
+# Local environment and database files
+.env
+.env.*
+!.env.example
+!**/.env.example
+db.sqlite3
+*.sqlite
+*.sqlite3
+*.sqlite3-*
+*.db
+*.db-*
+
+# Django generated files
+staticfiles/
+**/staticfiles/
+media/tmp/
+media/cache/
+
+# Logs, temp, archives
+*.log
+*.tmp
+*.bak
+*.backup
+*.orig
+*.rej
+*.zip
+*.7z
+*.rar
+
+# Test files are intentionally removed from this project
+**/tests.py
+**/tests_*.py
+**/test_*.py
+**/tests/
+**/__tests__/
+current_project/config/settings/test.py
+current_project/scripts/test_*.ps1
+
+# Tool caches
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# IDE and OS files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

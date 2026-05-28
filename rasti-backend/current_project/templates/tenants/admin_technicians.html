@@ -1,0 +1,21 @@
+{% extends "base_dashboard.html" %}
+{% block title %}تکنسین‌ها - {{ company.name }}{% endblock %}
+{% block sidebar_brand %}{{ company.name }}{% endblock %}
+{% block logout_url %}/{{ company.code }}/login/logout/{% endblock %}
+{% block sidebar_nav %}<li><a href="/{{ company.code }}/admin/">داشبورد</a></li><li><a href="/{{ company.code }}/admin/technicians/" class="active">تکنسین‌ها</a></li>{% endblock %}
+
+{% block content %}
+<div class="page-header"><h1>تکنسین‌ها</h1><a href="/{{ company.code }}/admin/technicians/create/" class="btn btn-primary">+ تکنسین جدید</a></div>
+{% if technicians %}
+<div class="card"><div class="table-wrapper"><table>
+<thead><tr><th>نام</th><th>یوزر ورود</th><th>وضعیت</th><th>عملیات</th></tr></thead>
+<tbody>{% for t in technicians %}<tr>
+<td>{{ t.user.get_full_name }}</td><td>{{ t.user.phone }}</td>
+<td>{% if t.is_available %}<span class="badge badge-done">فعال</span>{% else %}<span class="badge badge-cancelled">غیرفعال</span>{% endif %}</td>
+<td class="inline-actions">
+<a href="/{{ company.code }}/admin/technicians/{{ t.id }}/edit/" class="btn btn-sm btn-outline">ویرایش</a>
+<a href="/{{ company.code }}/admin/technicians/{{ t.id }}/delete/" class="btn btn-sm btn-danger">حذف</a></td>
+</tr>{% endfor %}</tbody>
+</table></div></div>
+{% else %}<div class="card"><p style="color:#64748b;">تکنسینی تعریف نشده.</p></div>{% endif %}
+{% endblock %}

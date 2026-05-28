@@ -1,0 +1,69 @@
+{% extends "base_dashboard.html" %}
+
+{% block title %}سفارش‌های جدید - {{ company.name }}{% endblock %}
+{% block sidebar_brand %}{{ company.name }}{% endblock %}
+{% block logout_url %}/{{ company.code }}/login/logout/{% endblock %}
+{% block sidebar_nav %}
+<li><a href="/{{ company.code }}/tech/">داشبورد</a></li>
+<li><a href="/{{ company.code }}/tech/orders/available/" class="active">سفارش‌های جدید</a></li>
+<li><a href="/{{ company.code }}/tech/orders/my/">سفارش‌های من</a></li>
+{% endblock %}
+
+{% block content %}
+<div class="page-header technician-page-header">
+    <div>
+        <h1>سفارش‌های جدید</h1>
+        <p class="muted-text">فقط سفارش‌های مربوط به رسته‌های فعال شما نمایش داده می‌شود.</p>
+    </div>
+</div>
+
+{% if orders_with_items %}
+<div class="technician-order-list">
+{% for entry in orders_with_items %}
+<article class="technician-order-card">
+    <div class="technician-order-card-head">
+        <div>
+            <strong>سفارش #{{ entry.order.id }}</strong>
+            <p>{{ entry.order.service_category.title|default:"بدون رسته" }}</p>
+        </div>
+        <span class="badge badge-{{ entry.order.status }}">{{ entry.order.get_status_display }}</span>
+    </div>
+
+    <div class="info-grid compact-info">
+        <div><span>تاریخ انجام</span><strong>{{ entry.order.display_service_date_jalali|default:"-" }}</strong></div>
+        <div><span>مشتری</span><strong>{{ entry.order.display_customer_name|default:"-" }}</strong></div>
+        <div><span>شماره تماس</span><strong dir="ltr">{{ entry.order.display_customer_phone|default:"-" }}</strong></div>
+        <div class="wide"><span>آدرس</span><strong>{{ entry.order.address|default:"-" }}</strong></div>
+        {% if entry.order.description %}<div class="wide"><span>توضیحات</span><strong>{{ entry.order.description }}</strong></div>{% endif %}
+    </div>
+
+    {% if entry.item_values %}
+    <div class="item-chip-list">
+        {% for iv in entry.item_values %}
+        <span class="item-chip">{{ iv.definition.title }}: <strong>{% if iv.definition.kind == "bool" %}{% if iv.value %}بله{% else %}خیر{% endif %}{% elif iv.value != None %}{{ iv.value }}{% if iv.definition.kind == "money" %} تومان{% endif %}{% else %}-{% endif %}</strong></span>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <div class="technician-card-actions">
+        {% if entry.accept_allowed %}
+        <form method="post" action="/{{ company.code }}/tech/orders/{{ entry.order.id }}/accept/">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-primary btn-block">پذیرش سفارش</button>
+        </form>
+        {% else %}
+        <button type="button" class="btn btn-outline btn-block" disabled>فعلاً قابل پذیرش نیست</button>
+        {% if entry.accept_block_reason %}<p class="help-text">{{ entry.accept_block_reason }}</p>{% endif %}
+        {% endif %}
+        <a href="/{{ company.code }}/tech/orders/{{ entry.order.id }}/" class="btn btn-outline btn-block">مشاهده جزئیات</a>
+    </div>
+</article>
+{% endfor %}
+</div>
+{% else %}
+<div class="card empty-state">
+    <h3>سفارش جدیدی برای شما وجود ندارد</h3>
+    <p>وقتی سفارش مرتبط با رسته‌های شما ثبت شود، همین‌جا نمایش داده می‌شود.</p>
+</div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,20 @@
+{% extends "base_dashboard.html" %}
+{% block title %}پلن‌ها - پلتفرم{% endblock %}
+{% block sidebar_brand %}پنل مدیریت پلتفرم{% endblock %}
+{% block logout_url %}/loginlogin/logout/{% endblock %}
+{% block sidebar_nav %}<li><a href="/loginlogin/dashboard/">داشبورد</a></li><li><a href="/loginlogin/companies/">شرکت‌ها</a></li><li><a href="/loginlogin/plans/" class="active">پلن‌ها</a></li><li><a href="/loginlogin/subscriptions/">اشتراک‌ها</a></li>{% endblock %}
+
+{% block content %}
+<div class="page-header"><h1>مدیریت پلن‌ها</h1><a href="/loginlogin/plans/create/" class="btn btn-primary">+ پلن جدید</a></div>
+{% if plans %}
+<div class="card"><div class="table-wrapper"><table>
+<thead><tr><th>نام</th><th>کد</th><th>قیمت ماهانه</th><th>کاربران</th><th>تکنسین</th><th>سفارش/ماه</th><th>وضعیت</th><th>عملیات</th></tr></thead>
+<tbody>{% for p in plans %}<tr>
+<td>{{ p.name }}</td><td><code>{{ p.code }}</code></td><td>{{ p.price_monthly }}</td>
+<td>{{ p.max_users }}</td><td>{{ p.max_technicians }}</td><td>{{ p.max_orders_per_month }}</td>
+<td>{% if p.is_active %}<span class="badge badge-done">فعال</span>{% else %}<span class="badge badge-cancelled">غیرفعال</span>{% endif %}</td>
+<td><a href="/loginlogin/plans/{{ p.id }}/edit/" class="btn btn-sm btn-outline">ویرایش</a></td>
+</tr>{% endfor %}</tbody>
+</table></div></div>
+{% else %}<div class="card"><p style="color:#64748b;">پلنی تعریف نشده.</p></div>{% endif %}
+{% endblock %}

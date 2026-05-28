@@ -1,0 +1,40 @@
+{% extends "base_dashboard.html" %}
+
+{% block title %}گزارش‌های پلتفرم - رستی سرویس{% endblock %}
+{% block sidebar_brand %}پنل مدیریت پلتفرم{% endblock %}
+{% block logout_url %}/loginlogin/logout/{% endblock %}
+
+{% block sidebar_nav %}
+<li><a href="/loginlogin/dashboard/">داشبورد</a></li>
+<li><a href="/loginlogin/reports/" class="active">گزارش‌ها</a></li>
+{% endblock %}
+
+{% block content %}
+<div class="page-header"><h1>گزارش‌های پلتفرم</h1></div>
+
+<div class="stats-grid">
+    <div class="stat-card accent"><div class="stat-value">{{ company_summary.total }}</div><div class="stat-label">کل شرکت‌ها</div></div>
+    <div class="stat-card success"><div class="stat-value">{{ company_summary.active }}</div><div class="stat-label">فعال</div></div>
+    <div class="stat-card danger"><div class="stat-value">{{ company_summary.inactive }}</div><div class="stat-label">غیرفعال</div></div>
+</div>
+
+<div class="card">
+    <div class="card-header">وضعیت اشتراک‌ها</div>
+    <div class="table-wrapper"><table>
+        <tr><td>مجموع</td><td>{{ subscription_summary.total }}</td></tr>
+        <tr><td>فعال</td><td>{{ subscription_summary.active }}</td></tr>
+        <tr><td>آزمایشی</td><td>{{ subscription_summary.trial }}</td></tr>
+        <tr><td>منقضی</td><td>{{ subscription_summary.expired }}</td></tr>
+    </table></div>
+</div>
+
+{% if usage %}
+<div class="card">
+    <div class="card-header">استفاده شرکت‌ها</div>
+    <div class="table-wrapper"><table>
+        <thead><tr><th>شرکت</th><th>تعداد سفارش</th></tr></thead>
+        <tbody>{% for u in usage %}<tr><td>{{ u.company.name }}</td><td>{{ u.order_count }}</td></tr>{% endfor %}</tbody>
+    </table></div>
+</div>
+{% endif %}
+{% endblock %}

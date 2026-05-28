@@ -1,0 +1,33 @@
+{% extends "base_dashboard.html" %}
+
+{% block title %}صندوق پیامک - {{ company.name }}{% endblock %}
+{% block sidebar_brand %}{{ company.name }}{% endblock %}
+{% block logout_url %}/{{ company.code }}/login/logout/{% endblock %}
+{% block sidebar_nav %}
+<li><a href="/{{ company.code }}/admin/">داشبورد</a></li>
+<li><a href="/{{ company.code }}/admin/sms/outbox/">صندوق پیامک</a></li>
+<li><a href="/{{ company.code }}/admin/sms/templates/">قالب‌های پیامک</a></li>
+<li><a href="/{{ company.code }}/admin/sms/diagnostics/">تشخیص پیامک</a></li>
+{% endblock %}
+
+{% block content %}
+<div class="page-header"><h1>صندوق پیامک</h1></div>
+
+
+{% if messages %}
+<div class="card">
+    <div class="table-wrapper"><table>
+        <thead><tr><th>شماره</th><th>وضعیت</th><th>پیام</th><th>تاریخ</th></tr></thead>
+        <tbody>{% for msg in messages %}
+        <tr>
+            <td>{{ msg.phone_number }}</td>
+            <td><span class="badge badge-{{ msg.status }}">{{ msg.get_status_display }}</span></td>
+            <td>{{ msg.message|truncatewords:10 }}</td>
+            <td>{{ msg.created_at|date:"Y/m/d H:i" }}</td>
+        </tr>{% endfor %}</tbody>
+    </table></div>
+</div>
+{% else %}
+<div class="card"><p style="color:#64748b;">پیامکی ارسال نشده.</p></div>
+{% endif %}
+{% endblock %}

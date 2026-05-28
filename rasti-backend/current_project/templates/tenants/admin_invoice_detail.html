@@ -1,0 +1,74 @@
+{% extends "base_dashboard.html" %}
+{% block title %}فاکتور {{ invoice.invoice_number }} - {{ company.name }}{% endblock %}
+{% block sidebar_brand %}{{ company.name }}{% endblock %}
+{% block logout_url %}/{{ company.code }}/login/logout/{% endblock %}
+{% block sidebar_nav %}<li><a href="/{{ company.code }}/admin/">داشبورد</a></li><li><a href="/{{ company.code }}/admin/invoices/" class="active">فاکتورها</a></li>{% endblock %}
+
+{% block content %}
+<div class="page-header"><h1>فاکتور {{ invoice.invoice_number }}</h1></div>
+{% if error %}<div class="alert alert-error">{{ error }}</div>{% endif %}
+
+<div class="card"><table>
+<tr><td style="font-weight:600;width:160px;">وضعیت</td><td><span class="badge badge-{{ invoice.status }}">{{ invoice.get_status_display }}</span></td></tr>
+<tr><td style="font-weight:600;">مشتری</td><td>{{ invoice.display_customer_name|default:"-" }}{% if invoice.display_customer_phone %} - {{ invoice.display_customer_phone }}{% endif %}</td></tr>
+<tr><td style="font-weight:600;">آدرس</td><td>{{ invoice.address_snapshot|default:"-" }}</td></tr>
+<tr><td style="font-weight:600;">نیروی خدماتی</td><td>{{ invoice.technician_name_snapshot|default:"-" }}{% if invoice.technician_phone_snapshot %} - {{ invoice.technician_phone_snapshot }}{% endif %}</td></tr>
+<tr><td style="font-weight:600;">سفارش</td><td>{% if invoice.order_id %}<a href="/{{ company.code }}/admin/orders/{{ invoice.order_id }}/">#{{ invoice.order_id }}</a>{% else %}-{% endif %}</td></tr>
+<tr><td style="font-weight:600;">خدمت</td><td>{{ invoice.service_title_snapshot|default:"-" }}</td></tr>
+<tr><td style="font-weight:600;">تاریخ خدمت</td><td>{{ invoice.display_service_date_jalali|default:"-" }}</td></tr>
+<tr><td style="font-weight:600;">صدور</td><td>{{ invoice.issued_at|default:"-" }}</td></tr>
+<tr><td style="font-weight:600;">پرداخت</td><td>{{ invoice.paid_at|default:"-" }}</td></tr>
+</table></div>
+
+<div class="card"><div class="card-header">آیتم‌های فاکتور</div>
+{% if invoice.items.all %}
+<table>
+<thead><tr><th>شرح</th><th>تعداد</th><th>قیمت واحد</th><th>تخفیف ردیف</th><th>جمع</th></tr></thead>
+<tbody>{% for item in invoice.items.all %}<tr>
+<td>{{ item.description }}</td><td>{{ item.quantity }}</td><td>{{ item.unit_price }}</td><td>{{ item.discount_amount }}</td><td>{{ item.total_price }}</td>
+</tr>{% endfor %}</tbody>
+<tfoot>
+<tr><td colspan="4" style="font-weight:600;">جمع ردیف‌ها</td><td>{{ invoice.subtotal }}</td></tr>
+<tr><td colspan="4" style="font-weight:600;">مالیات/افزوده</td><td>{{ invoice.tax_amount }}</td></tr>
+<tr><td colspan="4" style="font-weight:600;">تخفیف کل</td><td>{{ invoice.discount_amount }}</td></tr>
+<tr><td colspan="4" style="font-weight:700;">مبلغ نهایی</td><td style="font-weight:700;">{{ invoice.total_amount }} تومان</td></tr>
+</tfoot>
+</table>
+{% else %}<p style="color:#64748b;">هنوز آیتمی برای این فاکتور ثبت نشده است.</p>{% endif %}
+</div>
+
+{% if public_url %}
+<div class="card"><div class="card-header">لینک عمومی فاکتور</div>
+<input class="form-control" value="{{ public_url }}" readonly onclick="this.select();">
+<small>این لینک فقط نسخه خواندنی فاکتور را نمایش می‌دهد.</small>
+</div>
+{% endif %}
+
+<div style="display:flex;gap:0.5rem;flex-wrap:wrap;margin-top:1rem;">
+{% if invoice.status == "draft" %}
+<a href="/{{ company.code }}/admin/invoices/{{ invoice.id }}/edit/" class="btn btn-primary">ویرایش فاکتور</a>
+<form method="post" style="display:inline;">{% csrf_token %}
+<input type="hidden" name="issue_invoice" value="1">
+<button type="submit" class="btn btn-success">صدور فاکتور</button>
+</form>{% endif %}
+
+{% if invoice.status == "issued" or invoice.status == "paid" or invoice.status == "draft" %}
+{% if invoice.public_code %}<a href="/{{ company.code }}/admin/invoices/{{ invoice.public_code }}/print/" class="btn btn-primary">🖨️ چاپ / دانلود</a>{% endif %}
+{% endif %}
+
+{% if invoice.status == "issued" %}
+<form method="post" style="display:inline;">{% csrf_token %}
+<input type="hidden" name="mark_paid" value="1">
+<button type="submit" class="btn btn-success">ثبت پرداخت</button>
+</form>{% endif %}
+
+{% if invoice.status == "draft" or invoice.status == "issued" %}
+<form method="post" style="display:flex;gap:0.5rem;align-items:center;">{% csrf_token %}
+<input type="hidden" name="cancel_invoice" value="1">
+<input type="text" name="cancel_reason" class="form-control" placeholder="دلیل لغو" style="width:220px;">
+<button type="submit" class="btn btn-danger">لغو فاکتور</button>
+</form>{% endif %}
+</div>
+
+<p style="margin-top:1.5rem;"><a href="/{{ company.code }}/admin/invoices/">بازگشت</a></p>
+{% endblock %}

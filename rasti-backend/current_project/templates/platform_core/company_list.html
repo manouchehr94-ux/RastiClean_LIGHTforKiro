@@ -1,0 +1,20 @@
+{% extends "base_dashboard.html" %}
+{% block title %}شرکت‌ها - پلتفرم{% endblock %}
+{% block sidebar_brand %}پنل مدیریت پلتفرم{% endblock %}
+{% block logout_url %}/loginlogin/logout/{% endblock %}
+{% block sidebar_nav %}<li><a href="/loginlogin/dashboard/">داشبورد</a></li><li><a href="/loginlogin/companies/" class="active">شرکت‌ها</a></li><li><a href="/loginlogin/plans/">پلن‌ها</a></li><li><a href="/loginlogin/subscriptions/">اشتراک‌ها</a></li><li><a href="/loginlogin/reports/">گزارش‌ها</a></li>{% endblock %}
+
+{% block content %}
+<div class="page-header"><h1>مدیریت شرکت‌ها</h1><a href="/loginlogin/companies/create/" class="btn btn-primary">+ شرکت جدید</a></div>
+{% if companies %}
+<div class="card"><div class="table-wrapper"><table>
+<thead><tr><th>نام</th><th>کد</th><th>وضعیت</th><th>تلفن</th><th>تاریخ</th><th>عملیات</th></tr></thead>
+<tbody>{% for c in companies %}<tr>
+<td>{{ c.name }}</td><td><code>{{ c.code }}</code></td>
+<td>{% if c.is_active %}<span class="badge badge-done">فعال</span>{% else %}<span class="badge badge-cancelled">غیرفعال</span>{% endif %}</td>
+<td>{{ c.phone|default:"-" }}</td><td>{{ c.created_at|date:"Y/m/d" }}</td>
+<td><a href="/loginlogin/companies/{{ c.id }}/" class="btn btn-sm btn-outline">جزئیات</a></td>
+</tr>{% endfor %}</tbody>
+</table></div></div>
+{% else %}<div class="card"><p style="color:#64748b;">شرکتی ثبت نشده.</p></div>{% endif %}
+{% endblock %}

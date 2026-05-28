@@ -1,0 +1,54 @@
+{% extends "base_dashboard.html" %}
+
+{% block title %}داشبورد پلتفرم - رستی سرویس{% endblock %}
+{% block sidebar_brand %}پنل مدیریت پلتفرم{% endblock %}
+{% block logout_url %}/loginlogin/logout/{% endblock %}
+
+{% block sidebar_nav %}
+<li><a href="/loginlogin/dashboard/" class="active">داشبورد</a></li>
+<li><a href="/loginlogin/reports/">گزارش‌ها</a></li>
+<li><a href="/api/platform/companies/">شرکت‌ها (API)</a></li>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>داشبورد پلتفرم</h1>
+</div>
+
+<div class="stats-grid">
+    <div class="stat-card accent">
+        <div class="stat-value">{{ stats.total_companies }}</div>
+        <div class="stat-label">کل شرکت‌ها</div>
+    </div>
+    <div class="stat-card success">
+        <div class="stat-value">{{ stats.active_companies }}</div>
+        <div class="stat-label">فعال</div>
+    </div>
+    <div class="stat-card danger">
+        <div class="stat-value">{{ stats.inactive_companies }}</div>
+        <div class="stat-label">غیرفعال</div>
+    </div>
+    <div class="stat-card warning">
+        <div class="stat-value">{{ stats.subscription_count }}</div>
+        <div class="stat-label">اشتراک‌ها</div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">شرکت‌های اخیر</div>
+    {% if recent_companies %}
+    <div class="table-wrapper">
+    <table>
+        <thead><tr><th>نام</th><th>کد</th><th>تاریخ ثبت</th></tr></thead>
+        <tbody>
+        {% for c in recent_companies %}
+        <tr><td>{{ c.name }}</td><td>{{ c.code }}</td><td>{{ c.created_at|date:"Y/m/d" }}</td></tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    </div>
+    {% else %}
+    <p style="color:#64748b;">هنوز شرکتی ثبت نشده.</p>
+    {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,33 @@
+{% extends "base_dashboard.html" %}
+{% block title %}{{ company.name }} - پلتفرم{% endblock %}
+{% block sidebar_brand %}پنل مدیریت پلتفرم{% endblock %}
+{% block logout_url %}/loginlogin/logout/{% endblock %}
+{% block sidebar_nav %}<li><a href="/loginlogin/dashboard/">داشبورد</a></li><li><a href="/loginlogin/companies/" class="active">شرکت‌ها</a></li><li><a href="/loginlogin/plans/">پلن‌ها</a></li><li><a href="/loginlogin/subscriptions/">اشتراک‌ها</a></li>{% endblock %}
+
+{% block content %}
+<div class="page-header"><h1>{{ company.name }}</h1><a href="/loginlogin/companies/{{ company.id }}/edit/" class="btn btn-outline">ویرایش</a></div>
+
+<div class="stats-grid">
+<div class="stat-card accent"><div class="stat-value">{{ stats.order_count }}</div><div class="stat-label">سفارش</div></div>
+<div class="stat-card"><div class="stat-value">{{ stats.user_count }}</div><div class="stat-label">کاربران</div></div>
+</div>
+
+<div class="card"><table>
+<tr><td style="font-weight:600;width:130px;">کد</td><td><code>{{ company.code }}</code></td></tr>
+<tr><td style="font-weight:600;">آدرس URL</td><td><a href="/{{ company.code }}/" target="_blank">/{{ company.code }}/</a></td></tr>
+<tr><td style="font-weight:600;">وضعیت</td><td>{% if company.is_active %}<span class="badge badge-done">فعال</span>{% else %}<span class="badge badge-cancelled">غیرفعال</span>{% endif %}</td></tr>
+<tr><td style="font-weight:600;">ایمیل</td><td>{{ company.email|default:"-" }}</td></tr>
+<tr><td style="font-weight:600;">تلفن</td><td>{{ company.phone|default:"-" }}</td></tr>
+<tr><td style="font-weight:600;">آدرس</td><td>{{ company.address|default:"-" }}</td></tr>
+<tr><td style="font-weight:600;">اشتراک</td><td>{% if subscription %}{{ subscription.plan.name }} ({{ subscription.get_status_display }}){% else %}ندارد{% endif %}</td></tr>
+<tr><td style="font-weight:600;">ثبت</td><td>{{ company.created_at|date:"Y/m/d" }}</td></tr>
+</table></div>
+
+{% if company.is_active %}
+<form method="post" action="/loginlogin/companies/{{ company.id }}/deactivate/" style="display:inline;">{% csrf_token %}<button type="submit" class="btn btn-danger">غیرفعال‌سازی</button></form>
+{% else %}
+<form method="post" action="/loginlogin/companies/{{ company.id }}/activate/" style="display:inline;">{% csrf_token %}<button type="submit" class="btn btn-success">فعال‌سازی</button></form>
+{% endif %}
+
+<p style="margin-top:1.5rem;"><a href="/loginlogin/companies/">بازگشت</a></p>
+{% endblock %}

@@ -1,0 +1,79 @@
+from django.http import HttpResponse
+"""
+Rasti Service - Root URL Configuration.
+
+URL Routing Strategy:
+=====================
+
+1. Platform-level (no tenant):
+   - /loginlogin/         â†’ Platform owner panel
+   - /admin/              â†’ Django admin (superusers only)
+   - /static/             â†’ Static files
+   - /media/              â†’ Media files
+
+2. Tenant-level (tenant middleware resolves company from path):
+   - /<company_code>/              â†’ Company public page
+   - /<company_code>/login/        â†’ Tenant login
+   - /<company_code>/admin/        â†’ Company dashboard
+   - /<company_code>/orders/       â†’ Orders management
+   - /<company_code>/invoices/     â†’ Invoices
+   - /<company_code>/payments/     â†’ Payments
+   - /<company_code>/reports/      â†’ Reports
+   - /<company_code>/notifications/ â†’ Notifications
+
+The TenantMiddleware extracts company_code and attaches request.company.
+By the time URLconf processes the tenant URLs, the company is already resolved.
+"""
+from django.contrib import admin
+from django.urls import include, path
+
+from apps.api.urls import auth_urlpatterns, platform_urlpatterns, tenant_urlpatterns
+from apps.platform_core.health import health_check, health_db_check
+def favicon_view(request):
+    return HttpResponse(status=204)
+
+def rasti_favicon_view(request):
+    svg = b'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="14" fill="#2563eb"/><text x="32" y="43" font-size="34" text-anchor="middle" fill="white" font-family="Arial">R</text></svg>'
+    return HttpResponse(svg, content_type="image/svg+xml")
+urlpatterns = [
+    path("favicon.ico", rasti_favicon_view, name="favicon"),
+    # ==========================================================================
+    # HEALTH CHECKS (exempt from tenant resolution)
+    # ==========================================================================
+    path("health/", health_check, name="health"),
+    path("health/db/", health_db_check, name="health-db"),
+
+    # ==========================================================================
+    # PLATFORM-LEVEL ROUTES (exempt from tenant resolution)
+    # ==========================================================================
+    path("admin/", admin.site.urls),
+    path("loginlogin/", include("apps.platform_core.urls")),
+
+    # ==========================================================================
+    # REST API ROUTES
+    # ==========================================================================
+    # Auth API (exempt from tenant resolution)
+    path("api/auth/", include((auth_urlpatterns, "api"), namespace="api-auth")),
+    # Platform API (exempt from tenant resolution)
+    path("api/platform/", include((platform_urlpatterns, "api"), namespace="api-platform")),
+    # Tenant API (tenant middleware resolves company from path)
+    path("api/<slug:company_code>/", include((tenant_urlpatterns, "api"), namespace="api-tenant")),
+
+    # ==========================================================================
+    # TENANT-LEVEL ROUTES
+    # The <slug:company_code> is captured for URL resolution but the actual
+    # tenant resolution happens in TenantMiddleware (via the first path segment).
+    # ==========================================================================
+    path("<slug:company_code>/", include("apps.tenants.urls")),
+]
+
+# Serve media files in development (DEBUG mode)
+from django.conf import settings
+from django.conf.urls.static import static
+
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+
+
+
+

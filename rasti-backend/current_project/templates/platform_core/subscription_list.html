@@ -1,0 +1,23 @@
+{% extends "base_dashboard.html" %}
+{% block title %}اشتراک‌ها - پلتفرم{% endblock %}
+{% block sidebar_brand %}پنل مدیریت پلتفرم{% endblock %}
+{% block logout_url %}/loginlogin/logout/{% endblock %}
+{% block sidebar_nav %}<li><a href="/loginlogin/dashboard/">داشبورد</a></li><li><a href="/loginlogin/companies/">شرکت‌ها</a></li><li><a href="/loginlogin/plans/">پلن‌ها</a></li><li><a href="/loginlogin/subscriptions/" class="active">اشتراک‌ها</a></li>{% endblock %}
+
+{% block content %}
+<div class="page-header"><h1>مدیریت اشتراک‌ها</h1><a href="/loginlogin/subscriptions/create/" class="btn btn-primary">+ اشتراک جدید</a></div>
+{% if subscriptions %}
+<div class="card"><div class="table-wrapper"><table>
+<thead><tr><th>شرکت</th><th>پلن</th><th>وضعیت</th><th>شروع</th><th>انقضا</th><th>عملیات</th></tr></thead>
+<tbody>{% for s in subscriptions %}<tr>
+<td>{{ s.company.name }}</td><td>{{ s.plan.name }}</td>
+<td><span class="badge badge-{% if s.status == 'active' %}done{% elif s.status == 'trial' %}new{% elif s.status == 'expired' %}cancelled{% else %}cancelled{% endif %}">{{ s.get_status_display }}</span></td>
+<td>{{ s.started_at|date:"Y/m/d" }}</td><td>{{ s.expires_at|date:"Y/m/d" }}</td>
+<td>
+<a href="/loginlogin/subscriptions/{{ s.id }}/edit/" class="btn btn-sm btn-outline">ویرایش</a>
+{% if s.status != "active" %}<form method="post" action="/loginlogin/subscriptions/{{ s.id }}/activate/" style="display:inline;">{% csrf_token %}<button class="btn btn-sm btn-success">فعال</button></form>{% endif %}
+{% if s.status != "cancelled" %}<form method="post" action="/loginlogin/subscriptions/{{ s.id }}/cancel/" style="display:inline;">{% csrf_token %}<button class="btn btn-sm btn-danger">لغو</button></form>{% endif %}
+</td></tr>{% endfor %}</tbody>
+</table></div></div>
+{% else %}<div class="card"><p style="color:#64748b;">اشتراکی ثبت نشده.</p></div>{% endif %}
+{% endblock %}

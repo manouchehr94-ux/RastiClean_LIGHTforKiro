@@ -1,0 +1,151 @@
+{% extends "base_dashboard.html" %}
+{% block title %}مدیریت سفارش‌ها - {{ company.name }}{% endblock %}
+{% block sidebar_brand %}{{ company.name }}{% endblock %}
+{% block logout_url %}/{{ company.code }}/login/logout/{% endblock %}
+{% block sidebar_nav %}
+<li><a href="/{{ company.code }}/admin/" class="active">داشبورد</a></li>
+<li><a href="/{{ company.code }}/admin/orders/" class="active">سفارش‌ها</a></li>
+<li><a href="/{{ company.code }}/admin/settings/">تنظیمات سایت</a></li>
+{% endblock %}
+
+{% block content %}
+<style>
+.orders-filter-grid {
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(210px,1fr));
+    gap:.75rem;
+    align-items:end;
+}
+.columns-grid {
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(190px,1fr));
+    gap:.5rem;
+    margin-top:.75rem;
+}
+.column-check {
+    display:flex;
+    gap:.45rem;
+    align-items:center;
+    padding:.55rem;
+    border:1px solid #e2e8f0;
+    border-radius:.65rem;
+    background:#fff;
+}
+.orders-table-wrap {
+    overflow:auto;
+    max-width:100%;
+}
+.orders-table-wrap table {
+    min-width:1200px;
+}
+.orders-actions {
+    display:flex;
+    gap:.5rem;
+    flex-wrap:wrap;
+    margin-top:1rem;
+}
+</style>
+
+<div class="page-header">
+    <div>
+        <h1>مدیریت سفارش‌ها</h1>
+        <p>فیلتر سفارش‌ها، انتخاب ستون‌های قابل نمایش و خروجی اکسل.</p>
+    </div>
+</div>
+
+<form method="get" class="card" style="margin-bottom:1rem;">
+    <div class="card-header">فیلترها</div>
+
+    <div class="orders-filter-grid">
+        <div class="form-group">
+            <label>Search</label>
+            <input type="search" name="q" value="{{ q }}" placeholder="جستجو در سفارش‌ها">
+        </div>
+
+        <div class="form-group">
+            <label>از تاریخ</label>
+            <input type="text" name="from_date" value="{{ from_date }}" data-jalali-datepicker placeholder="مثلاً 1404/12/01">
+        </div>
+
+        <div class="form-group">
+            <label>تا تاریخ</label>
+            <input type="text" name="to_date" value="{{ to_date }}" data-jalali-datepicker placeholder="مثلاً 1404/12/30">
+        </div>
+
+        <div class="form-group">
+            <label>نیروی خدماتی</label>
+            <select name="technician">
+                <option value="">همه</option>
+                {% for tech in technician_options %}
+                    <option value="{{ tech.id }}" {% if selected_technician == tech.id %}selected{% endif %}>{{ tech.title }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label>وضعیت سفارش</label>
+            <select name="status">
+                <option value="">همه</option>
+                {% for item in status_options %}
+                    <option value="{{ item }}" {% if selected_status == item %}selected{% endif %}>{{ item }}</option>
+                {% endfor %}
+            </select>
+        </div>
+    </div>
+
+    <div style="margin-top:1rem;">
+        <strong>ستون‌های قابل نمایش در جدول و خروجی اکسل</strong>
+
+        <div class="columns-grid">
+            {% for col in columns %}
+            <label class="column-check">
+                <input type="checkbox" name="columns" value="{{ col.key }}" {% if col.key in selected_keys %}checked{% endif %}>
+                <span>{{ col.title }}</span>
+            </label>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="orders-actions">
+        <button type="submit" class="btn btn-primary">اعمال فیلتر روی لیست</button>
+        <button type="submit" name="export" value="excel" class="btn btn-outline">خروجی اکسل</button>
+        <a href="/{{ company.code }}/admin/orders/" class="btn btn-outline">حذف فیلتر</a>
+    </div>
+</form>
+
+<div class="card">
+    <div class="card-header">لیست سفارش‌ها — {{ result_count }} مورد</div>
+
+    <div class="orders-table-wrap">
+        <table>
+            <thead>
+                <tr>
+                    {% for col in selected_columns %}
+                    <th>{{ col.title }}</th>
+                    {% endfor %}
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in rows %}
+                <tr>
+                    {% for value in row.values %}
+                    <td>{{ value }}</td>
+                    {% endfor %}
+
+                    {% if "actions" not in selected_keys %}
+                    {% else %}
+                    <td>
+                        <a href="{{ row.detail_url }}" class="btn btn-sm btn-outline">جزئیات</a>
+                    </td>
+                    {% endif %}
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="{{ selected_columns|length }}">سفارشی با این فیلترها پیدا نشد.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

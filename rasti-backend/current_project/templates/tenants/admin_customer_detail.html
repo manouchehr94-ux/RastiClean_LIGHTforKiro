@@ -1,0 +1,28 @@
+{% extends "base_dashboard.html" %}
+{% block title %}مشتری: {{ customer.first_name }} {{ customer.last_name }} - {{ company.name }}{% endblock %}
+{% block sidebar_brand %}{{ company.name }}{% endblock %}
+{% block logout_url %}/{{ company.code }}/login/logout/{% endblock %}
+{% block sidebar_nav %}<li><a href="/{{ company.code }}/admin/">داشبورد</a></li><li><a href="/{{ company.code }}/admin/customers/" class="active">مشتریان</a></li>{% endblock %}
+
+{% block content %}
+<div class="page-header"><h1>{{ customer.first_name }} {{ customer.last_name }}</h1></div>
+<div class="card">
+<table><tr><td style="font-weight:600;width:120px;">تلفن</td><td>{{ customer.phone }}</td></tr>
+<tr><td style="font-weight:600;">ایمیل</td><td>{{ customer.email|default:"-" }}</td></tr>
+<tr><td style="font-weight:600;">آدرس</td><td>{{ customer.address|default:"-" }}</td></tr></table>
+</div>
+
+<div class="card"><div class="card-header">سفارش‌ها</div>
+{% if orders %}<div class="table-wrapper"><table>
+<thead><tr><th>#</th><th>عنوان</th><th>وضعیت</th><th>تاریخ</th></tr></thead>
+<tbody>{% for o in orders %}<tr><td>{{ o.id }}</td><td>{{ o.title }}</td><td>{{ o.get_status_display }}</td><td>{{ o.created_at|date:"Y/m/d" }}</td></tr>{% endfor %}</tbody>
+</table></div>{% else %}<p style="color:#64748b;">سفارشی ثبت نشده.</p>{% endif %}</div>
+
+<div class="card"><div class="card-header">فاکتورها</div>
+{% if invoices %}<div class="table-wrapper"><table>
+<thead><tr><th>شماره</th><th>وضعیت</th><th>مبلغ</th><th>تاریخ</th></tr></thead>
+<tbody>{% for inv in invoices %}<tr><td>{{ inv.invoice_number }}</td><td>{{ inv.get_status_display }}</td><td>{{ inv.total_amount }}</td><td>{{ inv.created_at|date:"Y/m/d" }}</td></tr>{% endfor %}</tbody>
+</table></div>{% else %}<p style="color:#64748b;">فاکتوری ثبت نشده.</p>{% endif %}</div>
+
+<p><a href="/{{ company.code }}/admin/customers/">بازگشت</a></p>
+{% endblock %}
