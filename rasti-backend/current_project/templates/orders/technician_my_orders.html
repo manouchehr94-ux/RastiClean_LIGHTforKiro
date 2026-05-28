@@ -1,92 +1,134 @@
-{% extends "base_dashboard.html" %}
+{% extends "layouts/technician.html" %}
 
 {% block title %}سفارش‌های من - {{ company.name }}{% endblock %}
-{% block sidebar_brand %}{{ company.name }}{% endblock %}
-{% block logout_url %}/{{ company.code }}/login/logout/{% endblock %}
-{% block sidebar_nav %}
-<li><a href="/{{ company.code }}/tech/">داشبورد</a></li>
-<li><a href="/{{ company.code }}/tech/orders/available/">سفارش‌های جدید</a></li>
-<li><a href="/{{ company.code }}/tech/orders/my/" class="active">سفارش‌های من</a></li>
-{% endblock %}
 
 {% block content %}
-<div class="page-header technician-page-header">
-    <div>
-        <h1>سفارش‌های من</h1>
-        <p class="muted-text">سفارش‌هایی که پذیرفته‌اید یا توسط ادمین به شما تخصیص داده شده‌اند.</p>
-    </div>
+{# Page Header #}
+<div class="mb-5">
+    <h1 class="text-lg font-bold text-gray-900">سفارش‌های من</h1>
+    <p class="text-sm text-gray-500 mt-0.5">سفارش‌هایی که پذیرفته‌اید یا توسط ادمین به شما تخصیص داده شده‌اند.</p>
 </div>
 
-<div class="technician-filter-strip">
-    <a href="/{{ company.code }}/tech/orders/my/" class="filter-pill {% if not status_filter %}active{% endif %}">همه</a>
-    <a href="/{{ company.code }}/tech/orders/my/?status=waiting" class="filter-pill {% if status_filter == 'waiting' %}active{% endif %}">در انتظار خدمت</a>
-    <a href="/{{ company.code }}/tech/orders/my/?status=in_progress" class="filter-pill {% if status_filter == 'in_progress' %}active{% endif %}">در حال انجام</a>
-    <a href="/{{ company.code }}/tech/orders/my/?status=done" class="filter-pill {% if status_filter == 'done' %}active{% endif %}">انجام‌شده</a>
-    <a href="/{{ company.code }}/tech/orders/my/?status=cancel_requested" class="filter-pill {% if status_filter == 'cancel_requested' %}active{% endif %}">درخواست لغو</a>
+{# Filter Bar #}
+<div class="tech-filter-bar">
+    <div class="filter-row" style="display:flex; flex-wrap:wrap; gap:0.5rem; align-items:center;">
+        <a href="/{{ company.code }}/tech/orders/my/" class="btn {% if not status_filter %}btn-primary{% else %}btn-outline{% endif %}" style="font-size:0.8rem; padding:0.4rem 0.75rem;">همه</a>
+        <a href="/{{ company.code }}/tech/orders/my/?status=waiting" class="btn {% if status_filter == 'waiting' %}btn-primary{% else %}btn-outline{% endif %}" style="font-size:0.8rem; padding:0.4rem 0.75rem;">در انتظار</a>
+        <a href="/{{ company.code }}/tech/orders/my/?status=in_progress" class="btn {% if status_filter == 'in_progress' %}btn-primary{% else %}btn-outline{% endif %}" style="font-size:0.8rem; padding:0.4rem 0.75rem;">در حال انجام</a>
+        <a href="/{{ company.code }}/tech/orders/my/?status=done" class="btn {% if status_filter == 'done' %}btn-primary{% else %}btn-outline{% endif %}" style="font-size:0.8rem; padding:0.4rem 0.75rem;">انجام‌شده</a>
+        <a href="/{{ company.code }}/tech/orders/my/?status=cancelled" class="btn {% if status_filter == 'cancelled' %}btn-primary{% else %}btn-outline{% endif %}" style="font-size:0.8rem; padding:0.4rem 0.75rem;">لغو‌شده</a>
+        <a href="/{{ company.code }}/tech/orders/my/?status=cancel_requested" class="btn {% if status_filter == 'cancel_requested' %}btn-primary{% else %}btn-outline{% endif %}" style="font-size:0.8rem; padding:0.4rem 0.75rem;">درخواست لغو</a>
+    </div>
 </div>
 
 {% if orders_with_items %}
-<div class="technician-order-list">
-{% for entry in orders_with_items %}
-<article class="technician-order-card">
-    <div class="technician-order-card-head">
-        <div>
-            <strong>سفارش #{{ entry.order.id }}</strong>
-            <p>{{ entry.order.service_category.title|default:"بدون رسته" }}</p>
+
+{# Desktop Table View #}
+<div class="tech-desktop-only">
+    <div class="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+        <table class="w-full" style="border-collapse:collapse; font-size:0.85rem;">
+            <thead>
+                <tr style="background:#f9fafb; border-bottom:1px solid #e5e7eb;">
+                    <th style="padding:0.75rem 1rem; text-align:right; font-weight:600; color:#374151;">شماره</th>
+                    <th style="padding:0.75rem 1rem; text-align:right; font-weight:600; color:#374151;">رسته</th>
+                    <th style="padding:0.75rem 1rem; text-align:right; font-weight:600; color:#374151;">مشتری</th>
+                    <th style="padding:0.75rem 1rem; text-align:right; font-weight:600; color:#374151;">تلفن</th>
+                    <th style="padding:0.75rem 1rem; text-align:center; font-weight:600; color:#374151;">وضعیت</th>
+                    <th style="padding:0.75rem 1rem; text-align:right; font-weight:600; color:#374151;">تاریخ</th>
+                    <th style="padding:0.75rem 1rem; text-align:center; font-weight:600; color:#374151;">عملیات</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for entry in orders_with_items %}
+                <tr style="border-bottom:1px solid #f3f4f6;">
+                    <td style="padding:0.75rem 1rem;">#{{ entry.order.id }}</td>
+                    <td style="padding:0.75rem 1rem;">{{ entry.order.service_category.title|default:"بدون رسته" }}</td>
+                    <td style="padding:0.75rem 1rem;">{{ entry.order.display_customer_name|default:"-" }}</td>
+                    <td style="padding:0.75rem 1rem;" dir="ltr">
+                        {% if entry.order.display_customer_phone %}
+                        <a href="tel:{{ entry.order.display_customer_phone }}" class="tech-phone-link">{{ entry.order.display_customer_phone }}</a>
+                        {% else %}-{% endif %}
+                    </td>
+                    <td style="padding:0.75rem 1rem; text-align:center;">
+                        {% include "includes/components/badge.html" with status=entry.order.status label=entry.order.get_status_display %}
+                    </td>
+                    <td style="padding:0.75rem 1rem;">{{ entry.order.display_service_date_jalali|default:"-" }}</td>
+                    <td style="padding:0.75rem 1rem; text-align:center;">
+                        <a href="/{{ company.code }}/tech/orders/{{ entry.order.id }}/" class="btn btn-outline" style="font-size:0.8rem; padding:0.4rem 0.75rem;">تغییر وضعیت</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{# Mobile Card View #}
+<div class="tech-mobile-only" style="display:none;">
+    {% for entry in orders_with_items %}
+    <div class="tech-card">
+        <div class="tech-card-header">
+            <div>
+                <div class="tech-card-title">{{ entry.order.display_customer_name|default:"مشتری" }}</div>
+                <div class="tech-card-meta">#{{ entry.order.id }} · {{ entry.order.service_category.title|default:"بدون رسته" }}</div>
+            </div>
+            {% include "includes/components/badge.html" with status=entry.order.status label=entry.order.get_status_display %}
         </div>
-        <span class="badge badge-{{ entry.order.status }}">{{ entry.order.get_status_display }}</span>
-    </div>
 
-    <div class="info-grid compact-info">
-        <div><span>تاریخ انجام</span><strong>{{ entry.order.display_service_date_jalali|default:"-" }}</strong></div>
-        <div><span>مشتری</span><strong>{{ entry.order.display_customer_name|default:"-" }}</strong></div>
-        <div><span>شماره تماس</span><strong dir="ltr">{{ entry.order.display_customer_phone|default:"-" }}</strong></div>
-        <div class="wide"><span>آدرس</span><strong>{{ entry.order.address|default:"-" }}</strong></div>
-    </div>
-
-    {% if entry.item_values %}
-    <div class="item-chip-list">
-        {% for iv in entry.item_values %}
-        <span class="item-chip">{{ iv.definition.title }}: <strong>{% if iv.definition.kind == "bool" %}{% if iv.value %}بله{% else %}خیر{% endif %}{% elif iv.value != None %}{{ iv.value }}{% if iv.definition.kind == "money" %} تومان{% endif %}{% else %}-{% endif %}</strong></span>
-        {% endfor %}
-    </div>
-    {% endif %}
-
-    <div class="technician-card-actions">
-        {% if entry.order.status == "waiting" %}
-        <form method="post" action="/{{ company.code }}/tech/orders/{{ entry.order.id }}/status/">
-            {% csrf_token %}
-            <button type="submit" name="new_status" value="in_progress" class="btn btn-primary btn-block">شروع کار</button>
-        </form>
+        {% if entry.order.display_customer_phone %}
+        <div class="tech-card-meta" style="margin-top:0.5rem;">
+            تلفن: <a href="tel:{{ entry.order.display_customer_phone }}" class="tech-phone-link">{{ entry.order.display_customer_phone }}</a>
+        </div>
         {% endif %}
 
-        {% if entry.order.status == "in_progress" %}
-        <form method="post" action="/{{ company.code }}/tech/orders/{{ entry.order.id }}/status/">
-            {% csrf_token %}
-            <button type="submit" name="new_status" value="done" class="btn btn-success btn-block">اتمام کار</button>
-        </form>
+        {% if entry.order.display_service_date_jalali %}
+        <div class="tech-card-meta" style="margin-top:0.25rem;">تاریخ: {{ entry.order.display_service_date_jalali }}</div>
         {% endif %}
 
-        {% if entry.order.status == "waiting" or entry.order.status == "in_progress" %}
-        <details class="cancel-details">
-            <summary>درخواست لغو</summary>
-            <form method="post" action="/{{ company.code }}/tech/orders/{{ entry.order.id }}/status/">
+        {% if entry.order.address %}
+        <div style="margin-top:0.5rem;">
+            <div class="tech-card-meta" style="margin-bottom:0.25rem;">آدرس:</div>
+            <div class="tech-collapsible" style="font-size:0.8rem; color:#374151;">{{ entry.order.address }}</div>
+            {% if entry.order.address|length > 60 %}
+            <span class="tech-toggle">نمایش بیشتر</span>
+            {% endif %}
+        </div>
+        {% endif %}
+
+        <div class="tech-card-actions">
+            {% if entry.order.status == "waiting" %}
+            <form method="post" action="/{{ company.code }}/tech/orders/{{ entry.order.id }}/status/" style="flex:1;">
                 {% csrf_token %}
-                <textarea name="note" class="form-control" rows="2" placeholder="دلیل درخواست لغو"></textarea>
-                <button type="submit" name="new_status" value="cancel_requested" class="btn btn-danger btn-block">ثبت درخواست لغو</button>
+                <button type="submit" name="new_status" value="in_progress" class="btn btn-primary" style="width:100%;">شروع کار</button>
             </form>
-        </details>
-        {% endif %}
-
-        <a href="/{{ company.code }}/tech/orders/{{ entry.order.id }}/" class="btn btn-outline btn-block">جزئیات</a>
+            {% elif entry.order.status == "in_progress" %}
+            <form method="post" action="/{{ company.code }}/tech/orders/{{ entry.order.id }}/status/" style="flex:1;">
+                {% csrf_token %}
+                <button type="submit" name="new_status" value="done" class="btn btn-success" style="width:100%;">اتمام کار</button>
+            </form>
+            {% endif %}
+            <a href="/{{ company.code }}/tech/orders/{{ entry.order.id }}/" class="btn btn-outline" style="flex:1; text-align:center;">تغییر وضعیت</a>
+        </div>
     </div>
-</article>
-{% endfor %}
+    {% endfor %}
 </div>
+
 {% else %}
-<div class="card empty-state">
-    <h3>سفارشی در این بخش وجود ندارد</h3>
-    <p>بعد از پذیرش سفارش، سفارش‌های فعال شما اینجا نمایش داده می‌شوند.</p>
-</div>
+{% include "includes/components/empty_state.html" with title="سفارشی در این بخش وجود ندارد" description="بعد از پذیرش سفارش، سفارش‌های فعال شما اینجا نمایش داده می‌شوند." icon="orders" %}
 {% endif %}
+
+<script>
+document.querySelectorAll('.tech-toggle').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+        var target = this.previousElementSibling;
+        if (target.classList.contains('expanded')) {
+            target.classList.remove('expanded');
+            this.textContent = 'نمایش بیشتر';
+        } else {
+            target.classList.add('expanded');
+            this.textContent = 'نمایش کمتر';
+        }
+    });
+});
+</script>
 {% endblock %}

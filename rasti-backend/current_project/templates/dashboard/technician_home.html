@@ -3,29 +3,29 @@
 {% block title %}پنل نیرو - {{ company.name }}{% endblock %}
 
 {% block content %}
-{# Header #}
+{# Welcome Header #}
 <div class="mb-5">
     <h1 class="text-lg font-bold text-gray-900">سلام {{ request.user.first_name|default:"نیروی خدماتی" }} 👋</h1>
     <p class="text-sm text-gray-500 mt-0.5">وضعیت سفارش‌های امروز و کارتابل شما</p>
 </div>
 
-{# Quick Stat Cards #}
+{# Stats Cards - 2x2 Grid #}
 <div class="grid grid-cols-2 gap-3 mb-6">
-    <a href="/{{ company.code }}/tech/orders/available/" class="block p-4 bg-white rounded-xl border border-gray-100 shadow-sm hover:shadow-md hover:border-brand-200 transition-smooth">
+    <a href="/{{ company.code }}/tech/orders/available/" class="tech-card" style="text-align:center;">
         <div class="text-2xl font-extrabold text-brand-600">{{ stats.visible_orders|default:"0" }}</div>
-        <p class="text-xs text-gray-500 mt-1">سفارش جدید قابل بررسی</p>
+        <p class="tech-card-meta">سفارش جدید قابل بررسی</p>
     </a>
-    <a href="/{{ company.code }}/tech/orders/my/?status=waiting" class="block p-4 bg-white rounded-xl border border-gray-100 shadow-sm hover:shadow-md hover:border-amber-200 transition-smooth">
+    <a href="/{{ company.code }}/tech/orders/my/?status=waiting" class="tech-card" style="text-align:center;">
         <div class="text-2xl font-extrabold text-amber-600">{{ stats.waiting_orders|default:"0" }}</div>
-        <p class="text-xs text-gray-500 mt-1">در انتظار شروع کار</p>
+        <p class="tech-card-meta">در انتظار شروع کار</p>
     </a>
-    <a href="/{{ company.code }}/tech/orders/my/?status=in_progress" class="block p-4 bg-white rounded-xl border border-gray-100 shadow-sm hover:shadow-md hover:border-indigo-200 transition-smooth">
+    <a href="/{{ company.code }}/tech/orders/my/?status=in_progress" class="tech-card" style="text-align:center;">
         <div class="text-2xl font-extrabold text-indigo-600">{{ stats.in_progress_orders|default:"0" }}</div>
-        <p class="text-xs text-gray-500 mt-1">در حال انجام</p>
+        <p class="tech-card-meta">در حال انجام</p>
     </a>
-    <a href="/{{ company.code }}/tech/orders/my/?status=done" class="block p-4 bg-white rounded-xl border border-gray-100 shadow-sm hover:shadow-md hover:border-emerald-200 transition-smooth">
+    <a href="/{{ company.code }}/tech/orders/my/?status=done" class="tech-card" style="text-align:center;">
         <div class="text-2xl font-extrabold text-emerald-600">{{ stats.completed_orders|default:"0" }}</div>
-        <p class="text-xs text-gray-500 mt-1">انجام‌شده</p>
+        <p class="tech-card-meta">انجام‌شده</p>
     </a>
 </div>
 
@@ -39,12 +39,14 @@
     {% if recent_orders %}
     <div class="divide-y divide-gray-50">
         {% for order in recent_orders %}
-        <a href="/{{ company.code }}/tech/orders/{{ order.id }}/" class="flex items-center justify-between px-4 py-3 hover:bg-gray-50 transition-colors">
-            <div class="min-w-0 flex-1">
-                <p class="text-sm font-medium text-gray-900 truncate">#{{ order.id }} · {{ order.display_customer_name|default:"مشتری" }}</p>
-                <p class="text-xs text-gray-500 mt-0.5 truncate">{{ order.service_category.title|default:"بدون رسته" }}{% if order.display_service_date_jalali %} · {{ order.display_service_date_jalali }}{% endif %}</p>
+        <a href="/{{ company.code }}/tech/orders/{{ order.id }}/" class="tech-card" style="border:none; border-radius:0; border-bottom: 1px solid #f3f4f6; margin-bottom:0;">
+            <div class="tech-card-header">
+                <div>
+                    <div class="tech-card-title">#{{ order.id }} · {{ order.display_customer_name|default:"مشتری" }}</div>
+                    <div class="tech-card-meta">{{ order.service_category.title|default:"بدون رسته" }}{% if order.display_service_date_jalali %} · {{ order.display_service_date_jalali }}{% endif %}</div>
+                </div>
+                {% include "includes/components/badge.html" with status=order.status label=order.get_status_display %}
             </div>
-            {% include "includes/components/badge.html" with status=order.status label=order.get_status_display %}
         </a>
         {% endfor %}
     </div>
