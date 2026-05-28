@@ -519,3 +519,43 @@ textarea.form-control { resize: vertical; }
     padding-top: 0.75rem;
 }
 .nav-group:first-child .nav-group-title { border-top: none; padding-top: 0.25rem; }
+
+
+
+/* =============================================================================
+   TECHNICIAN PORTAL ENHANCEMENTS
+   ============================================================================= */
+.tech-card {
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.75rem;
+    padding: 1rem;
+    margin-bottom: 0.75rem;
+}
+.tech-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 0.5rem;
+}
+.tech-card-title { font-size: 0.9rem; font-weight: 600; color: #1f2937; }
+.tech-card-meta { font-size: 0.8rem; color: #6b7280; margin-top: 0.25rem; }
+.tech-card-actions { margin-top: 0.75rem; display: flex; gap: 0.5rem; flex-wrap: wrap; }
+.tech-phone-link { color: #2563eb; text-decoration: none; direction: ltr; display: inline-block; }
+.tech-phone-link:hover { text-decoration: underline; }
+.tech-collapsible { max-height: 3em; overflow: hidden; transition: max-height 0.3s; }
+.tech-collapsible.expanded { max-height: none; }
+.tech-toggle { font-size: 0.75rem; color: #2563eb; cursor: pointer; margin-top: 0.25rem; display: inline-block; }
+.tech-toggle:hover { text-decoration: underline; }
+.tech-filter-bar { background: #fff; border: 1px solid #e5e7eb; border-radius: 0.75rem; padding: 1rem; margin-bottom: 1rem; }
+.tech-filter-bar .filter-row { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; }
+
+/* Desktop table hidden on mobile, cards hidden on desktop */
+@media (max-width: 768px) {
+    .tech-desktop-only { display: none !important; }
+    .tech-mobile-only { display: block !important; }
+}
+@media (min-width: 769px) {
+    .tech-desktop-only { display: block !important; }
+    .tech-mobile-only { display: none !important; }
+}

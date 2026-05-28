@@ -1,69 +1,134 @@
-{% extends "base_dashboard.html" %}
+{% extends "layouts/technician.html" %}
 
 {% block title %}سفارش‌های جدید - {{ company.name }}{% endblock %}
-{% block sidebar_brand %}{{ company.name }}{% endblock %}
-{% block logout_url %}/{{ company.code }}/login/logout/{% endblock %}
-{% block sidebar_nav %}
-<li><a href="/{{ company.code }}/tech/">داشبورد</a></li>
-<li><a href="/{{ company.code }}/tech/orders/available/" class="active">سفارش‌های جدید</a></li>
-<li><a href="/{{ company.code }}/tech/orders/my/">سفارش‌های من</a></li>
-{% endblock %}
 
 {% block content %}
-<div class="page-header technician-page-header">
-    <div>
-        <h1>سفارش‌های جدید</h1>
-        <p class="muted-text">فقط سفارش‌های مربوط به رسته‌های فعال شما نمایش داده می‌شود.</p>
-    </div>
+{# Page Header #}
+<div class="mb-5">
+    <h1 class="text-lg font-bold text-gray-900">سفارش‌های جدید</h1>
+    <p class="text-sm text-gray-500 mt-0.5">فقط سفارش‌های مربوط به رسته‌های فعال شما نمایش داده می‌شود.</p>
 </div>
 
 {% if orders_with_items %}
-<div class="technician-order-list">
-{% for entry in orders_with_items %}
-<article class="technician-order-card">
-    <div class="technician-order-card-head">
-        <div>
-            <strong>سفارش #{{ entry.order.id }}</strong>
-            <p>{{ entry.order.service_category.title|default:"بدون رسته" }}</p>
+
+{# Desktop Table View #}
+<div class="tech-desktop-only">
+    <div class="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+        <table class="w-full" style="border-collapse:collapse; font-size:0.85rem;">
+            <thead>
+                <tr style="background:#f9fafb; border-bottom:1px solid #e5e7eb;">
+                    <th style="padding:0.75rem 1rem; text-align:right; font-weight:600; color:#374151;">شماره</th>
+                    <th style="padding:0.75rem 1rem; text-align:right; font-weight:600; color:#374151;">رسته</th>
+                    <th style="padding:0.75rem 1rem; text-align:right; font-weight:600; color:#374151;">مشتری</th>
+                    <th style="padding:0.75rem 1rem; text-align:right; font-weight:600; color:#374151;">تلفن</th>
+                    <th style="padding:0.75rem 1rem; text-align:right; font-weight:600; color:#374151;">آدرس</th>
+                    <th style="padding:0.75rem 1rem; text-align:right; font-weight:600; color:#374151;">تاریخ انجام</th>
+                    <th style="padding:0.75rem 1rem; text-align:center; font-weight:600; color:#374151;">عملیات</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for entry in orders_with_items %}
+                <tr style="border-bottom:1px solid #f3f4f6;">
+                    <td style="padding:0.75rem 1rem;">#{{ entry.order.id }}</td>
+                    <td style="padding:0.75rem 1rem;">{{ entry.order.service_category.title|default:"بدون رسته" }}</td>
+                    <td style="padding:0.75rem 1rem;">{{ entry.order.display_customer_name|default:"-" }}</td>
+                    <td style="padding:0.75rem 1rem;" dir="ltr">
+                        {% if entry.order.display_customer_phone %}
+                        <a href="tel:{{ entry.order.display_customer_phone }}" class="tech-phone-link">{{ entry.order.display_customer_phone }}</a>
+                        {% else %}-{% endif %}
+                    </td>
+                    <td style="padding:0.75rem 1rem; max-width:200px;">
+                        {% if entry.order.address %}
+                        <div class="tech-collapsible">{{ entry.order.address }}</div>
+                        {% if entry.order.address|length > 60 %}
+                        <span class="tech-toggle">نمایش بیشتر</span>
+                        {% endif %}
+                        {% else %}-{% endif %}
+                    </td>
+                    <td style="padding:0.75rem 1rem;">{{ entry.order.display_service_date_jalali|default:"-" }}</td>
+                    <td style="padding:0.75rem 1rem; text-align:center;">
+                        {% if entry.accept_allowed %}
+                        <form method="post" action="/{{ company.code }}/tech/orders/{{ entry.order.id }}/accept/" style="display:inline;">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-success" style="font-size:0.8rem; padding:0.4rem 0.75rem;">قبول سفارش</button>
+                        </form>
+                        {% else %}
+                        <button type="button" class="btn btn-outline" style="font-size:0.8rem; padding:0.4rem 0.75rem;" disabled>فعلاً قابل پذیرش نیست</button>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{# Mobile Card View #}
+<div class="tech-mobile-only" style="display:none;">
+    {% for entry in orders_with_items %}
+    <div class="tech-card">
+        <div class="tech-card-header">
+            <div>
+                <div class="tech-card-title">{{ entry.order.display_customer_name|default:"مشتری" }}</div>
+                <div class="tech-card-meta">#{{ entry.order.id }} · {{ entry.order.service_category.title|default:"بدون رسته" }}</div>
+            </div>
+            {% include "includes/components/badge.html" with status=entry.order.status label=entry.order.get_status_display %}
         </div>
-        <span class="badge badge-{{ entry.order.status }}">{{ entry.order.get_status_display }}</span>
-    </div>
 
-    <div class="info-grid compact-info">
-        <div><span>تاریخ انجام</span><strong>{{ entry.order.display_service_date_jalali|default:"-" }}</strong></div>
-        <div><span>مشتری</span><strong>{{ entry.order.display_customer_name|default:"-" }}</strong></div>
-        <div><span>شماره تماس</span><strong dir="ltr">{{ entry.order.display_customer_phone|default:"-" }}</strong></div>
-        <div class="wide"><span>آدرس</span><strong>{{ entry.order.address|default:"-" }}</strong></div>
-        {% if entry.order.description %}<div class="wide"><span>توضیحات</span><strong>{{ entry.order.description }}</strong></div>{% endif %}
-    </div>
-
-    {% if entry.item_values %}
-    <div class="item-chip-list">
-        {% for iv in entry.item_values %}
-        <span class="item-chip">{{ iv.definition.title }}: <strong>{% if iv.definition.kind == "bool" %}{% if iv.value %}بله{% else %}خیر{% endif %}{% elif iv.value != None %}{{ iv.value }}{% if iv.definition.kind == "money" %} تومان{% endif %}{% else %}-{% endif %}</strong></span>
-        {% endfor %}
-    </div>
-    {% endif %}
-
-    <div class="technician-card-actions">
-        {% if entry.accept_allowed %}
-        <form method="post" action="/{{ company.code }}/tech/orders/{{ entry.order.id }}/accept/">
-            {% csrf_token %}
-            <button type="submit" class="btn btn-primary btn-block">پذیرش سفارش</button>
-        </form>
-        {% else %}
-        <button type="button" class="btn btn-outline btn-block" disabled>فعلاً قابل پذیرش نیست</button>
-        {% if entry.accept_block_reason %}<p class="help-text">{{ entry.accept_block_reason }}</p>{% endif %}
+        {% if entry.order.display_customer_phone %}
+        <div class="tech-card-meta" style="margin-top:0.5rem;">
+            تلفن: <a href="tel:{{ entry.order.display_customer_phone }}" class="tech-phone-link">{{ entry.order.display_customer_phone }}</a>
+        </div>
         {% endif %}
-        <a href="/{{ company.code }}/tech/orders/{{ entry.order.id }}/" class="btn btn-outline btn-block">مشاهده جزئیات</a>
+
+        {% if entry.order.address %}
+        <div style="margin-top:0.5rem;">
+            <div class="tech-card-meta" style="margin-bottom:0.25rem;">آدرس:</div>
+            <div class="tech-collapsible" style="font-size:0.8rem; color:#374151;">{{ entry.order.address }}</div>
+            {% if entry.order.address|length > 60 %}
+            <span class="tech-toggle">نمایش بیشتر</span>
+            {% endif %}
+        </div>
+        {% endif %}
+
+        {% if entry.order.display_service_date_jalali %}
+        <div class="tech-card-meta" style="margin-top:0.5rem;">تاریخ انجام: {{ entry.order.display_service_date_jalali }}</div>
+        {% endif %}
+
+        <div class="tech-card-actions">
+            {% if entry.accept_allowed %}
+            <form method="post" action="/{{ company.code }}/tech/orders/{{ entry.order.id }}/accept/" style="flex:1;">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-success" style="width:100%;">قبول سفارش</button>
+            </form>
+            {% else %}
+            <button type="button" class="btn btn-outline" style="flex:1;" disabled>فعلاً قابل پذیرش نیست</button>
+            {% endif %}
+            <a href="/{{ company.code }}/tech/orders/{{ entry.order.id }}/" class="btn btn-outline" style="flex:1; text-align:center;">جزئیات</a>
+        </div>
+        {% if entry.accept_block_reason and not entry.accept_allowed %}
+        <p class="tech-card-meta" style="margin-top:0.5rem; color:#d97706;">{{ entry.accept_block_reason }}</p>
+        {% endif %}
     </div>
-</article>
-{% endfor %}
+    {% endfor %}
 </div>
+
 {% else %}
-<div class="card empty-state">
-    <h3>سفارش جدیدی برای شما وجود ندارد</h3>
-    <p>وقتی سفارش مرتبط با رسته‌های شما ثبت شود، همین‌جا نمایش داده می‌شود.</p>
-</div>
+{% include "includes/components/empty_state.html" with title="سفارش جدیدی برای شما وجود ندارد" description="وقتی سفارش مرتبط با رسته‌های شما ثبت شود، همین‌جا نمایش داده می‌شود." icon="orders" %}
 {% endif %}
+
+<script>
+document.querySelectorAll('.tech-toggle').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+        var target = this.previousElementSibling;
+        if (target.classList.contains('expanded')) {
+            target.classList.remove('expanded');
+            this.textContent = 'نمایش بیشتر';
+        } else {
+            target.classList.add('expanded');
+            this.textContent = 'نمایش کمتر';
+        }
+    });
+});
+</script>
 {% endblock %}

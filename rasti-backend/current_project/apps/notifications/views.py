@@ -23,7 +23,10 @@ def notification_list(request: HttpRequest, **kwargs) -> HttpResponse:
     unread_count = NotificationSelector.get_unread_count(
         company=company, user=request.user
     )
-    return render(request, "notifications/list.html", {
+    template = "notifications/list.html"
+    if getattr(request.user, "role", None) == "TECHNICIAN":
+        template = "notifications/technician_notifications.html"
+    return render(request, template, {
         "notifications": notifications,
         "unread_count": unread_count,
         "company": company,
