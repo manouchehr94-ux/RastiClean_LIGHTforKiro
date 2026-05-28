@@ -253,3 +253,77 @@ class PlatformBillingInvoice(models.Model):
 
     def __str__(self):
         return f"Invoice #{self.invoice_number} - {self.company.name} ({self.get_status_display()})"
+
+
+
+class PlatformPaymentTransaction(models.Model):
+    """
+    Payment transaction for platform billing invoices.
+
+    Currently supports MANUAL payments only. Future-ready for online
+    gateways (ZarinPal, IDPay, PayPing).
+
+    Flow:
+    1. Tenant creates recharge invoice (UNPAID)
+    2. Payment transaction created (INITIATED)
+    3a. Manual: Platform Owner marks paid → VERIFIED
+    3b. Future online: redirect to gateway → callback → VERIFIED/FAILED
+    4. If VERIFIED: invoice becomes PAID, wallet credited
+
+    TODO (Future):
+    - ZarinPal gateway integration
+    - IDPay gateway integration
+    - PayPing gateway integration
+    - Automatic callback verification
+    - Refund support
+    """
+
+    class Provider(models.TextChoices):
+        MANUAL = "MANUAL", "پرداخت دستی"
+        ZARINPAL_FUTURE = "ZARINPAL_FUTURE", "زرین‌پال (آینده)"
+        IDPAY_FUTURE = "IDPAY_FUTURE", "آیدی‌پی (آینده)"
+        PAYPING_FUTURE = "PAYPING_FUTURE", "پی‌پینگ (آینده)"
+        OTHER_FUTURE = "OTHER_FUTURE", "سایر (آینده)"
+
+    class Status(models.TextChoices):
+        INITIATED = "INITIATED", "آغاز شده"
+        REDIRECTED = "REDIRECTED", "هدایت به درگاه"
+        PAID = "PAID", "پرداخت شده"
+        FAILED = "FAILED", "ناموفق"
+        CANCELED = "CANCELED", "لغو شده"
+        VERIFIED = "VERIFIED", "تایید شده"
+
+    invoice = models.ForeignKey(
+        PlatformBillingInvoice,
+        on_delete=models.CASCADE,
+        related_name="payment_transactions",
+    )
+    company = models.ForeignKey(
+        "tenants.Company",
+        on_delete=models.CASCADE,
+        related_name="platform_payment_transactions",
+    )
+    amount_rial = models.BigIntegerField()
+    provider = models.CharField(
+        max_length=20,
+        choices=Provider.choices,
+        default=Provider.MANUAL,
+    )
+    authority = models.CharField(max_length=100, blank=True, help_text="Gateway authority/token")
+    tracking_code = models.CharField(max_length=100, blank=True)
+    reference_id = models.CharField(max_length=100, blank=True)
+    status = models.CharField(
+        max_length=15,
+        choices=Status.choices,
+        default=Status.INITIATED,
+    )
+    gateway_response = models.TextField(blank=True, help_text="Raw gateway response JSON")
+    created_at = models.DateTimeField(auto_now_add=True)
+    verified_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+        verbose_name = "Platform Payment Transaction"
+
+    def __str__(self):
+        return f"Payment #{self.id} - {self.invoice.invoice_number} ({self.get_status_display()})"

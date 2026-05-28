@@ -16,8 +16,20 @@ from .services_sms_credit import SMSCreditService
 
 @require_platform_owner
 def sms_billing_index(request: HttpRequest) -> HttpResponse:
-    """SMS billing dashboard — redirect to companies."""
-    return redirect("platform_core:sms_billing_companies")
+    """SMS billing dashboard — shows unpaid invoices summary + links."""
+    unpaid_invoices = PlatformBillingInvoice.objects.filter(
+        status=PlatformBillingInvoice.Status.UNPAID
+    ).select_related("company").order_by("-created_at")[:20]
+    unpaid_count = PlatformBillingInvoice.objects.filter(
+        status=PlatformBillingInvoice.Status.UNPAID
+    ).count()
+    total_unpaid_amount = sum(inv.amount_rial for inv in unpaid_invoices)
+
+    return render(request, "platform_core/sms_billing/index.html", {
+        "unpaid_invoices": unpaid_invoices,
+        "unpaid_count": unpaid_count,
+        "total_unpaid_amount": total_unpaid_amount,
+    })
 
 
 @require_platform_owner
@@ -83,10 +95,30 @@ def sms_billing_transactions(request: HttpRequest) -> HttpResponse:
 
 @require_platform_owner
 def sms_billing_invoices(request: HttpRequest) -> HttpResponse:
-    """List all platform billing invoices."""
-    invoices = PlatformBillingInvoice.objects.select_related("company").all()[:100]
+    """List all platform billing invoices with optional filters."""
+    queryset = PlatformBillingInvoice.objects.select_related("company").all()
+
+    # Apply filters
+    status_filter = request.GET.get("status", "")
+    company_filter = request.GET.get("company", "")
+    type_filter = request.GET.get("type", "")
+
+    if status_filter:
+        queryset = queryset.filter(status=status_filter)
+    if company_filter:
+        queryset = queryset.filter(company_id=company_filter)
+    if type_filter:
+        queryset = queryset.filter(invoice_type=type_filter)
+
+    invoices = queryset[:100]
+    companies = Company.objects.filter(is_active=True).order_by("name")
+
     return render(request, "platform_core/sms_billing/invoices.html", {
         "invoices": invoices,
+        "companies": companies,
+        "status_filter": status_filter,
+        "company_filter": company_filter,
+        "type_filter": type_filter,
     })
 
 

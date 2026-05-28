@@ -20,6 +20,34 @@
 {% endblock %}
 
 {% block content %}
+{# Filters #}
+<div class="bg-white rounded-xl border border-gray-100 shadow-sm p-4 mb-4">
+    <form method="get" class="flex flex-wrap items-center gap-3">
+        <select name="status" class="form-control" style="width:auto;min-width:140px;">
+            <option value="">همه وضعیت‌ها</option>
+            <option value="UNPAID" {% if status_filter == "UNPAID" %}selected{% endif %}>پرداخت نشده</option>
+            <option value="PAID" {% if status_filter == "PAID" %}selected{% endif %}>پرداخت شده</option>
+            <option value="CANCELED" {% if status_filter == "CANCELED" %}selected{% endif %}>لغو شده</option>
+        </select>
+        <select name="company" class="form-control" style="width:auto;min-width:160px;">
+            <option value="">همه شرکت‌ها</option>
+            {% for c in companies %}
+            <option value="{{ c.id }}" {% if company_filter == c.id|stringformat:"d" %}selected{% endif %}>{{ c.name }}</option>
+            {% endfor %}
+        </select>
+        <select name="type" class="form-control" style="width:auto;min-width:140px;">
+            <option value="">همه انواع</option>
+            <option value="SMS_RECHARGE" {% if type_filter == "SMS_RECHARGE" %}selected{% endif %}>شارژ پیامک</option>
+            <option value="SUBSCRIPTION" {% if type_filter == "SUBSCRIPTION" %}selected{% endif %}>اشتراک</option>
+            <option value="MANUAL" {% if type_filter == "MANUAL" %}selected{% endif %}>دستی</option>
+        </select>
+        <button type="submit" class="btn btn-primary btn-sm">فیلتر</button>
+        {% if status_filter or company_filter or type_filter %}
+        <a href="/owner-platform/sms-billing/invoices/" class="text-xs text-gray-500 hover:text-gray-700">پاک کردن فیلتر</a>
+        {% endif %}
+    </form>
+</div>
+
 {% if invoices %}
 <div class="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
     <div class="overflow-x-auto">

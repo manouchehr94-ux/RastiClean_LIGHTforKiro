@@ -102,12 +102,24 @@ class SMSCreditService:
     @staticmethod
     @transaction.atomic
     def mark_invoice_paid(invoice: PlatformBillingInvoice, paid_by=None):
+        """Mark invoice as paid, credit wallet, create payment transaction."""
         if invoice.status == PlatformBillingInvoice.Status.PAID:
             return  # Already paid
         invoice.status = PlatformBillingInvoice.Status.PAID
         invoice.paid_by = paid_by
         invoice.paid_at = timezone.now()
         invoice.save(update_fields=["status", "paid_by", "paid_at"])
+
+        # Create payment transaction record
+        from .models import PlatformPaymentTransaction
+        PlatformPaymentTransaction.objects.create(
+            invoice=invoice,
+            company=invoice.company,
+            amount_rial=invoice.amount_rial,
+            provider=PlatformPaymentTransaction.Provider.MANUAL,
+            status=PlatformPaymentTransaction.Status.VERIFIED,
+            verified_at=timezone.now(),
+        )
 
         # Credit wallet
         if invoice.invoice_type == PlatformBillingInvoice.InvoiceType.SMS_RECHARGE:
