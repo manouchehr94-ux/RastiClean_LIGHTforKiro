@@ -1,0 +1,87 @@
+{% extends "layouts/technician.html" %}
+
+{% block title %}فاکتورهای من - {{ company.name }}{% endblock %}
+
+{% block content %}
+<div class="tech-content-safe">
+
+{# Page Header #}
+<div class="mb-5">
+    <h1 class="text-lg font-bold text-gray-900">فاکتورهای من</h1>
+    <p class="text-sm text-gray-500 mt-0.5">لیست فاکتورهای صادر شده برای سفارش‌های شما.</p>
+</div>
+
+{% if invoices %}
+
+{# Desktop Table View #}
+<div class="tech-desktop-only">
+    <div class="bg-white rounded-xl border border-gray-100 shadow-sm" style="overflow-x:auto; max-width:100%;">
+        <table class="w-full" style="border-collapse:collapse; font-size:0.85rem; min-width:500px;">
+            <thead>
+                <tr style="background:#f9fafb; border-bottom:1px solid #e5e7eb;">
+                    <th style="padding:0.75rem 1rem; text-align:right; font-weight:600; color:#374151;">شماره فاکتور</th>
+                    <th style="padding:0.75rem 1rem; text-align:right; font-weight:600; color:#374151;">مشتری</th>
+                    <th style="padding:0.75rem 1rem; text-align:right; font-weight:600; color:#374151;">مبلغ کل</th>
+                    <th style="padding:0.75rem 1rem; text-align:center; font-weight:600; color:#374151;">وضعیت</th>
+                    <th style="padding:0.75rem 1rem; text-align:right; font-weight:600; color:#374151;">تاریخ صدور</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for invoice in invoices %}
+                <tr style="border-bottom:1px solid #f3f4f6;">
+                    <td style="padding:0.75rem 1rem;">{{ invoice.invoice_number }}</td>
+                    <td style="padding:0.75rem 1rem;">{{ invoice.display_customer_name|default:"-" }}</td>
+                    <td style="padding:0.75rem 1rem;">{{ invoice.total_amount|default:"0" }} تومان</td>
+                    <td style="padding:0.75rem 1rem; text-align:center;">
+                        {% include "includes/components/badge.html" with status=invoice.status label=invoice.get_status_display %}
+                    </td>
+                    <td style="padding:0.75rem 1rem;">{{ invoice.created_at|date:"Y/m/d" }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{# Mobile Card View #}
+<div class="tech-mobile-only" style="display:none;">
+    {% for invoice in invoices %}
+    <div class="tech-card">
+        <div class="tech-card-header">
+            <div style="min-width:0; flex:1;">
+                <div class="tech-card-title">{{ invoice.invoice_number }}</div>
+                <div class="tech-card-meta">{{ invoice.created_at|date:"Y/m/d" }}</div>
+            </div>
+            {% include "includes/components/badge.html" with status=invoice.status label=invoice.get_status_display %}
+        </div>
+
+        <div class="tech-field">
+            <span class="tech-field-label">مشتری:</span>
+            <span class="tech-field-value">{{ invoice.display_customer_name|default:"—" }}</span>
+        </div>
+        {% if invoice.display_customer_phone %}
+        <div class="tech-field">
+            <span class="tech-field-label">شماره تماس:</span>
+            <span class="tech-field-value"><a href="tel:{{ invoice.display_customer_phone }}" class="tech-phone-link">{{ invoice.display_customer_phone }}</a></span>
+        </div>
+        {% endif %}
+        <div class="tech-field">
+            <span class="tech-field-label">مبلغ کل:</span>
+            <span class="tech-field-value">{{ invoice.total_amount|default:"0" }} تومان</span>
+        </div>
+        {% if invoice.service_title_snapshot %}
+        <div class="tech-field">
+            <span class="tech-field-label">خدمت:</span>
+            <span class="tech-field-value">{{ invoice.service_title_snapshot }}</span>
+        </div>
+        {% endif %}
+    </div>
+    {% endfor %}
+</div>
+
+{% else %}
+{% include "includes/components/empty_state.html" with title="فاکتوری ندارید" description="هنوز فاکتوری برای سفارش‌های شما صادر نشده است." icon="invoice" %}
+{% endif %}
+
+</div>{# /tech-content-safe #}
+{% endblock %}

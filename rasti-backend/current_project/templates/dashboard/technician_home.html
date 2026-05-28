@@ -3,6 +3,8 @@
 {% block title %}پنل نیرو - {{ company.name }}{% endblock %}
 
 {% block content %}
+<div class="tech-content-safe">
+
 {# Welcome Header #}
 <div class="mb-5">
     <h1 class="text-lg font-bold text-gray-900">سلام {{ request.user.first_name|default:"نیروی خدماتی" }} 👋</h1>
@@ -29,6 +31,15 @@
     </a>
 </div>
 
+{# Quick Links #}
+<div class="tech-card" style="margin-bottom:1rem;">
+    <div style="display:flex; flex-wrap:wrap; gap:0.5rem;">
+        <a href="/{{ company.code }}/tech/orders/available/" class="btn btn-primary" style="font-size:0.8rem; padding:0.5rem 1rem;">سفارش‌های جدید</a>
+        <a href="/{{ company.code }}/tech/orders/my/" class="btn btn-outline" style="font-size:0.8rem; padding:0.5rem 1rem;">سفارش‌های من</a>
+        <a href="/{{ company.code }}/tech/orders/invoices/" class="btn btn-outline" style="font-size:0.8rem; padding:0.5rem 1rem;">فاکتورهای من</a>
+    </div>
+</div>
+
 {# Recent Orders #}
 <div class="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
     <div class="px-4 py-3 border-b border-gray-100 flex items-center justify-between">
@@ -41,9 +52,15 @@
         {% for order in recent_orders %}
         <a href="/{{ company.code }}/tech/orders/{{ order.id }}/" class="tech-card" style="border:none; border-radius:0; border-bottom: 1px solid #f3f4f6; margin-bottom:0;">
             <div class="tech-card-header">
-                <div>
-                    <div class="tech-card-title">#{{ order.id }} · {{ order.display_customer_name|default:"مشتری" }}</div>
-                    <div class="tech-card-meta">{{ order.service_category.title|default:"بدون رسته" }}{% if order.display_service_date_jalali %} · {{ order.display_service_date_jalali }}{% endif %}</div>
+                <div style="min-width:0; flex:1;">
+                    <div class="tech-field">
+                        <span class="tech-field-label">مشتری:</span>
+                        <span class="tech-field-value">#{{ order.id }} · {{ order.display_customer_name|default:"مشتری" }}</span>
+                    </div>
+                    <div class="tech-field">
+                        <span class="tech-field-label">رسته:</span>
+                        <span class="tech-field-value">{{ order.service_category.title|default:"بدون رسته" }}{% if order.display_service_date_jalali %} · {{ order.display_service_date_jalali }}{% endif %}</span>
+                    </div>
                 </div>
                 {% include "includes/components/badge.html" with status=order.status label=order.get_status_display %}
             </div>
@@ -54,4 +71,6 @@
     {% include "includes/components/empty_state.html" with title="سفارشی ندارید" description="هنوز سفارشی به شما تخصیص داده نشده است." icon="orders" %}
     {% endif %}
 </div>
+
+</div>{# /tech-content-safe #}
 {% endblock %}

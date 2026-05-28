@@ -368,3 +368,26 @@ def technician_status_update(request: HttpRequest, order_id: int, **kwargs) -> H
             })
 
     return redirect(f"/{company.code}/tech/orders/{order.id}/")
+
+
+
+@require_tenant_role("TECHNICIAN")
+def technician_invoices(request: HttpRequest, **kwargs) -> HttpResponse:
+    """List invoices for orders assigned to this technician."""
+    company = request.company
+    technician = getattr(request.user, "technician_profile", None)
+
+    if not technician:
+        return HttpResponseForbidden("Technician profile not found.")
+
+    from apps.invoices.models import Invoice
+
+    invoices = Invoice.objects.filter(
+        company=company,
+        order__technician=technician,
+    ).order_by("-created_at")[:50]
+
+    return render(request, "orders/technician_invoices.html", {
+        "company": company,
+        "invoices": invoices,
+    })

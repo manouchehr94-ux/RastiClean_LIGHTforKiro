@@ -3,30 +3,67 @@
 {% block title %}سفارش‌های من - {{ company.name }}{% endblock %}
 
 {% block content %}
+<div class="tech-content-safe">
+
 {# Page Header #}
 <div class="mb-5">
     <h1 class="text-lg font-bold text-gray-900">سفارش‌های من</h1>
     <p class="text-sm text-gray-500 mt-0.5">سفارش‌هایی که پذیرفته‌اید یا توسط ادمین به شما تخصیص داده شده‌اند.</p>
 </div>
 
-{# Filter Bar #}
-<div class="tech-filter-bar">
-    <div class="filter-row" style="display:flex; flex-wrap:wrap; gap:0.5rem; align-items:center;">
-        <a href="/{{ company.code }}/tech/orders/my/" class="btn {% if not status_filter %}btn-primary{% else %}btn-outline{% endif %}" style="font-size:0.8rem; padding:0.4rem 0.75rem;">همه</a>
-        <a href="/{{ company.code }}/tech/orders/my/?status=waiting" class="btn {% if status_filter == 'waiting' %}btn-primary{% else %}btn-outline{% endif %}" style="font-size:0.8rem; padding:0.4rem 0.75rem;">در انتظار</a>
-        <a href="/{{ company.code }}/tech/orders/my/?status=in_progress" class="btn {% if status_filter == 'in_progress' %}btn-primary{% else %}btn-outline{% endif %}" style="font-size:0.8rem; padding:0.4rem 0.75rem;">در حال انجام</a>
-        <a href="/{{ company.code }}/tech/orders/my/?status=done" class="btn {% if status_filter == 'done' %}btn-primary{% else %}btn-outline{% endif %}" style="font-size:0.8rem; padding:0.4rem 0.75rem;">انجام‌شده</a>
-        <a href="/{{ company.code }}/tech/orders/my/?status=cancelled" class="btn {% if status_filter == 'cancelled' %}btn-primary{% else %}btn-outline{% endif %}" style="font-size:0.8rem; padding:0.4rem 0.75rem;">لغو‌شده</a>
-        <a href="/{{ company.code }}/tech/orders/my/?status=cancel_requested" class="btn {% if status_filter == 'cancel_requested' %}btn-primary{% else %}btn-outline{% endif %}" style="font-size:0.8rem; padding:0.4rem 0.75rem;">درخواست لغو</a>
-    </div>
+{# Collapsed Filters #}
+<div class="tech-filters-toggle">
+    <span>جستجو و فیلتر</span>
+    <span class="toggle-icon">▼</span>
+</div>
+<div class="tech-filters-body">
+    <form method="get">
+        <div style="display:flex; flex-direction:column; gap:0.75rem;">
+            <input type="text" name="q" placeholder="جستجو نام، تلفن، آدرس..." class="form-control" value="{{ request.GET.q }}" style="width:100%; padding:0.5rem 0.75rem; border:1px solid #e5e7eb; border-radius:0.5rem; font-size:0.85rem;">
+            <div style="display:flex; gap:0.5rem; flex-wrap:wrap;">
+                <div style="flex:1; min-width:120px;">
+                    <label class="tech-field-label">وضعیت:</label>
+                    <select name="status" class="form-control" style="width:100%; padding:0.4rem 0.5rem; border:1px solid #e5e7eb; border-radius:0.5rem; font-size:0.8rem;">
+                        <option value="">همه</option>
+                        <option value="waiting" {% if status_filter == "waiting" %}selected{% endif %}>در انتظار</option>
+                        <option value="in_progress" {% if status_filter == "in_progress" %}selected{% endif %}>در حال انجام</option>
+                        <option value="done" {% if status_filter == "done" %}selected{% endif %}>انجام‌شده</option>
+                        <option value="cancelled" {% if status_filter == "cancelled" %}selected{% endif %}>لغو‌شده</option>
+                        <option value="cancel_requested" {% if status_filter == "cancel_requested" %}selected{% endif %}>درخواست لغو</option>
+                    </select>
+                </div>
+                <div style="flex:1; min-width:120px;">
+                    <label class="tech-field-label">از تاریخ:</label>
+                    <input type="date" name="date_from" value="{{ request.GET.date_from }}" class="form-control" style="width:100%; padding:0.4rem 0.5rem; border:1px solid #e5e7eb; border-radius:0.5rem; font-size:0.8rem;">
+                </div>
+                <div style="flex:1; min-width:120px;">
+                    <label class="tech-field-label">تا تاریخ:</label>
+                    <input type="date" name="date_to" value="{{ request.GET.date_to }}" class="form-control" style="width:100%; padding:0.4rem 0.5rem; border:1px solid #e5e7eb; border-radius:0.5rem; font-size:0.8rem;">
+                </div>
+            </div>
+            <div style="display:flex; gap:0.5rem; align-items:center;">
+                <button type="submit" class="btn btn-primary" style="font-size:0.8rem; padding:0.5rem 1rem;">اعمال فیلتر</button>
+                <a href="?" class="text-xs text-gray-500" style="text-decoration:none;">پاک کردن</a>
+            </div>
+        </div>
+    </form>
+</div>
+
+{# Quick Status Tabs #}
+<div style="display:flex; flex-wrap:wrap; gap:0.4rem; margin-bottom:1rem;">
+    <a href="/{{ company.code }}/tech/orders/my/" class="btn {% if not status_filter %}btn-primary{% else %}btn-outline{% endif %}" style="font-size:0.75rem; padding:0.35rem 0.6rem;">همه</a>
+    <a href="/{{ company.code }}/tech/orders/my/?status=waiting" class="btn {% if status_filter == 'waiting' %}btn-primary{% else %}btn-outline{% endif %}" style="font-size:0.75rem; padding:0.35rem 0.6rem;">در انتظار</a>
+    <a href="/{{ company.code }}/tech/orders/my/?status=in_progress" class="btn {% if status_filter == 'in_progress' %}btn-primary{% else %}btn-outline{% endif %}" style="font-size:0.75rem; padding:0.35rem 0.6rem;">در حال انجام</a>
+    <a href="/{{ company.code }}/tech/orders/my/?status=done" class="btn {% if status_filter == 'done' %}btn-primary{% else %}btn-outline{% endif %}" style="font-size:0.75rem; padding:0.35rem 0.6rem;">انجام‌شده</a>
+    <a href="/{{ company.code }}/tech/orders/my/?status=cancelled" class="btn {% if status_filter == 'cancelled' %}btn-primary{% else %}btn-outline{% endif %}" style="font-size:0.75rem; padding:0.35rem 0.6rem;">لغو‌شده</a>
 </div>
 
 {% if orders_with_items %}
 
 {# Desktop Table View #}
 <div class="tech-desktop-only">
-    <div class="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
-        <table class="w-full" style="border-collapse:collapse; font-size:0.85rem;">
+    <div class="bg-white rounded-xl border border-gray-100 shadow-sm" style="overflow-x:auto; max-width:100%;">
+        <table class="w-full" style="border-collapse:collapse; font-size:0.85rem; min-width:600px;">
             <thead>
                 <tr style="background:#f9fafb; border-bottom:1px solid #e5e7eb;">
                     <th style="padding:0.75rem 1rem; text-align:right; font-weight:600; color:#374151;">شماره</th>
@@ -68,30 +105,49 @@
     {% for entry in orders_with_items %}
     <div class="tech-card">
         <div class="tech-card-header">
-            <div>
+            <div style="min-width:0; flex:1;">
                 <div class="tech-card-title">{{ entry.order.display_customer_name|default:"مشتری" }}</div>
                 <div class="tech-card-meta">#{{ entry.order.id }} · {{ entry.order.service_category.title|default:"بدون رسته" }}</div>
             </div>
             {% include "includes/components/badge.html" with status=entry.order.status label=entry.order.get_status_display %}
         </div>
 
+        <div class="tech-field">
+            <span class="tech-field-label">مشتری:</span>
+            <span class="tech-field-value">{{ entry.order.display_customer_name|default:"—" }}</span>
+        </div>
         {% if entry.order.display_customer_phone %}
-        <div class="tech-card-meta" style="margin-top:0.5rem;">
-            تلفن: <a href="tel:{{ entry.order.display_customer_phone }}" class="tech-phone-link">{{ entry.order.display_customer_phone }}</a>
+        <div class="tech-field">
+            <span class="tech-field-label">شماره تماس:</span>
+            <span class="tech-field-value"><a href="tel:{{ entry.order.display_customer_phone }}" class="tech-phone-link">{{ entry.order.display_customer_phone }}</a></span>
         </div>
         {% endif %}
 
         {% if entry.order.display_service_date_jalali %}
-        <div class="tech-card-meta" style="margin-top:0.25rem;">تاریخ: {{ entry.order.display_service_date_jalali }}</div>
+        <div class="tech-field">
+            <span class="tech-field-label">تاریخ:</span>
+            <span class="tech-field-value">{{ entry.order.display_service_date_jalali }}</span>
+        </div>
         {% endif %}
 
         {% if entry.order.address %}
-        <div style="margin-top:0.5rem;">
-            <div class="tech-card-meta" style="margin-bottom:0.25rem;">آدرس:</div>
+        <div class="tech-field">
+            <span class="tech-field-label">آدرس:</span>
             <div class="tech-collapsible" style="font-size:0.8rem; color:#374151;">{{ entry.order.address }}</div>
             {% if entry.order.address|length > 60 %}
             <span class="tech-toggle">نمایش بیشتر</span>
             {% endif %}
+        </div>
+        {% endif %}
+
+        {% if entry.item_values %}
+        <div class="tech-field">
+            <span class="tech-field-label">آیتم‌های سفارش:</span>
+            <ul class="tech-items-list">
+                {% for item in entry.item_values %}
+                <li>{{ item }}</li>
+                {% endfor %}
+            </ul>
         </div>
         {% endif %}
 
@@ -117,7 +173,23 @@
 {% include "includes/components/empty_state.html" with title="سفارشی در این بخش وجود ندارد" description="بعد از پذیرش سفارش، سفارش‌های فعال شما اینجا نمایش داده می‌شوند." icon="orders" %}
 {% endif %}
 
+</div>{# /tech-content-safe #}
+
 <script>
+document.querySelectorAll('.tech-filters-toggle').forEach(function(el) {
+    el.addEventListener('click', function() {
+        this.classList.toggle('open');
+        var body = this.nextElementSibling;
+        if (body) body.classList.toggle('open');
+    });
+});
+document.querySelectorAll('.tech-summary-toggle').forEach(function(el) {
+    el.addEventListener('click', function() {
+        this.classList.toggle('open');
+        var body = this.nextElementSibling;
+        if (body) body.classList.toggle('open');
+    });
+});
 document.querySelectorAll('.tech-toggle').forEach(function(btn) {
     btn.addEventListener('click', function() {
         var target = this.previousElementSibling;

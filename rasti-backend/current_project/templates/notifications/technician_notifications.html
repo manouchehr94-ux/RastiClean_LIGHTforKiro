@@ -3,6 +3,8 @@
 {% block title %}اعلان‌ها - {{ company.name }}{% endblock %}
 
 {% block content %}
+<div class="tech-content-safe">
+
 {# Page Header #}
 <div class="mb-5">
     <h1 class="text-lg font-bold text-gray-900">اعلان‌ها</h1>
@@ -10,18 +12,23 @@
 </div>
 
 {% if notifications %}
-<div class="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+<div style="max-width:100%;">
     {% for n in notifications %}
-    <div class="tech-card" style="border-radius:0; border-left:none; border-right:none; border-top:none; {% if not n.is_read %}background:#f0f9ff; border-right:3px solid #2563eb;{% endif %}">
-        <div class="tech-card-header">
+    <div class="tech-card" style="{% if not n.is_read %}background:#f0f9ff; border-right:3px solid #2563eb;{% endif %}">
+        <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:0.75rem;">
             <div style="flex:1; min-width:0;">
-                <div class="tech-card-title" style="{% if not n.is_read %}font-weight:700;{% else %}font-weight:500; color:#6b7280;{% endif %}">{{ n.title }}</div>
-                <div class="tech-card-meta" style="margin-top:0.25rem;">{{ n.message|truncatewords:20 }}</div>
+                <div class="tech-field">
+                    <span class="tech-field-value" style="{% if not n.is_read %}font-weight:700;{% else %}font-weight:500; color:#6b7280;{% endif %}">{{ n.title }}</span>
+                </div>
+                <div style="font-size:0.8rem; color:#4b5563; line-height:1.5; word-wrap:break-word; overflow-wrap:break-word;">{{ n.message|truncatewords:30 }}</div>
             </div>
-            <div style="text-align:left; flex-shrink:0; margin-right:0.75rem;">
-                <div class="tech-card-meta">{{ n.created_at|date:"Y/m/d H:i" }}</div>
+            <div style="text-align:left; flex-shrink:0;">
+                <div class="tech-card-meta" style="white-space:nowrap;">{{ n.created_at|date:"Y/m/d H:i" }}</div>
                 {% if not n.is_read %}
-                <a href="/{{ company.code }}/tech/notifications/{{ n.id }}/read/" class="btn btn-outline" style="font-size:0.7rem; padding:0.25rem 0.5rem; margin-top:0.25rem;">خوانده شد</a>
+                <form method="post" action="/{{ company.code }}/tech/notifications/{{ n.id }}/read/" style="margin-top:0.35rem;">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-outline" style="font-size:0.7rem; padding:0.25rem 0.5rem;">خوانده شد</button>
+                </form>
                 {% endif %}
             </div>
         </div>
@@ -31,4 +38,6 @@
 {% else %}
 {% include "includes/components/empty_state.html" with title="اعلانی ندارید" description="هنوز اعلانی برای شما ارسال نشده است." icon="bell" %}
 {% endif %}
+
+</div>{# /tech-content-safe #}
 {% endblock %}
