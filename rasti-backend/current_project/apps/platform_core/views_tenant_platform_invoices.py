@@ -34,16 +34,16 @@ def tenant_platform_invoice_pay(request: HttpRequest, invoice_id: int, **kwargs)
     invoice = get_object_or_404(PlatformBillingInvoice, id=invoice_id, company=company)
 
     if request.method != "POST":
-        return redirect("tenants:admin_platform_invoice_detail", invoice_id=invoice.id)
+        return redirect(f"/{company.code}/admin/platform-invoices/{invoice.id}/")
 
     if invoice.status == PlatformBillingInvoice.Status.PAID:
-        return redirect("tenants:admin_platform_invoice_detail", invoice_id=invoice.id)
+        return redirect(f"/{company.code}/admin/platform-invoices/{invoice.id}/")
 
     txn = PlatformPaymentService.start_platform_invoice_payment(invoice, company, request.user)
     if txn is None:
-        return redirect("tenants:admin_platform_invoice_detail", invoice_id=invoice.id)
+        return redirect(f"/{company.code}/admin/platform-invoices/{invoice.id}/")
 
-    return redirect("tenants:admin_platform_invoice_mock", transaction_id=txn.id)
+    return redirect(f"/{company.code}/admin/platform-invoices/payment/mock/{txn.id}/")
 
 
 @require_tenant_role("COMPANY_ADMIN", "COMPANY_STAFF")
@@ -53,16 +53,16 @@ def tenant_platform_invoice_mock(request: HttpRequest, transaction_id: int, **kw
     txn = get_object_or_404(PlatformPaymentTransaction, id=transaction_id, company=company)
 
     if txn.status in ['VERIFIED', 'PAID']:
-        return redirect("tenants:admin_platform_invoice_detail", invoice_id=txn.invoice_id)
+        return redirect(f"/{company.code}/admin/platform-invoices/{txn.invoice_id}/")
 
     if request.method == "POST":
         action = request.POST.get("action")
         if action == "success":
             PlatformPaymentService.process_mock_success(txn, user=request.user)
-            return redirect("tenants:admin_platform_invoice_detail", invoice_id=txn.invoice_id)
+            return redirect(f"/{company.code}/admin/platform-invoices/{txn.invoice_id}/")
         elif action == "failure":
             PlatformPaymentService.process_mock_failure(txn)
-            return redirect("tenants:admin_platform_invoice_detail", invoice_id=txn.invoice_id)
+            return redirect(f"/{company.code}/admin/platform-invoices/{txn.invoice_id}/")
 
     return render(request, "tenants/admin_platform_invoice_mock.html", {
         "company": company, "txn": txn,
