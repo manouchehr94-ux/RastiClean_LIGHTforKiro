@@ -240,3 +240,170 @@ def comm_template_detail(request: HttpRequest, template_id: int) -> HttpResponse
         "template": template,
         "preview": preview,
     })
+
+
+
+@require_platform_owner
+def company_templates_list(request: HttpRequest, company_id: int) -> HttpResponse:
+    """List all communication templates for a specific company (global inherited + company-specific)."""
+    from apps.tenants.models import Company
+    company = get_object_or_404(Company, id=company_id)
+
+    # Get all events from global templates
+    global_templates = CommunicationTemplate.objects.filter(company__isnull=True, is_active=True)
+    company_templates = CommunicationTemplate.objects.filter(company=company)
+
+    # Build unified list
+    items = []
+    for gtpl in global_templates:
+        # Check if company-specific override exists
+        override = company_templates.filter(
+            event_key=gtpl.event_key, channel=gtpl.channel, recipient_type=gtpl.recipient_type
+        ).first()
+        items.append({
+            "global_template": gtpl,
+            "override": override,
+            "effective": override if override else gtpl,
+            "source": "\u0627\u062e\u062a\u0635\u0627\u0635\u06cc" if override else "\u067e\u06cc\u0634\u200c\u0641\u0631\u0636",
+        })
+
+    return render(request, "platform_core/comm_templates/company_list.html", {
+        "company": company,
+        "items": items,
+    })
+
+
+@require_platform_owner
+def company_template_create(request: HttpRequest, company_id: int) -> HttpResponse:
+    """Create a company-specific override from global default."""
+    from apps.tenants.models import Company
+
+    company = get_object_or_404(Company, id=company_id)
+
+    # Get global template to override (from query param)
+    global_id = request.GET.get("from_global") or request.POST.get("from_global")
+    global_tpl = None
+    if global_id:
+        global_tpl = CommunicationTemplate.objects.filter(id=global_id, company__isnull=True).first()
+
+    errors = {}
+
+    if request.method == "POST":
+        title = request.POST.get("title_template", "").strip()
+        body = request.POST.get("body_template", "").strip()
+        action_label = request.POST.get("action_label", "").strip()
+        action_url = request.POST.get("action_url_template", "").strip()
+        event_key = request.POST.get("event_key", "")
+        channel = request.POST.get("channel", "")
+        recipient_type = request.POST.get("recipient_type", "")
+
+        # Validate placeholders
+        valid_title, invalid_title = CommunicationTemplateService.validate_placeholders(title)
+        valid_body, invalid_body = CommunicationTemplateService.validate_placeholders(body)
+        if not valid_title or not valid_body:
+            errors["placeholders"] = f"\u0645\u062a\u063a\u06cc\u0631\u0647\u0627\u06cc \u063a\u06cc\u0631\u0645\u062c\u0627\u0632: {', '.join(invalid_title + invalid_body)}"
+
+        # Validate URL
+        if action_url and not CommunicationTemplateService.validate_action_url(action_url):
+            errors["action_url"] = "\u0622\u062f\u0631\u0633 \u0641\u0642\u0637 \u0645\u06cc\u200c\u062a\u0648\u0627\u0646\u062f \u062f\u0627\u062e\u0644\u06cc \u0628\u0627\u0634\u062f (\u0628\u062f\u0648\u0646 http/https)."
+
+        if not errors and title and body:
+            CommunicationTemplate.objects.create(
+                company=company,
+                event_key=event_key,
+                channel=channel,
+                recipient_type=recipient_type,
+                title_template=title,
+                body_template=body,
+                action_label=action_label,
+                action_url_template=action_url,
+                is_active=True,
+                is_required=request.POST.get("is_required") == "on",
+                allow_company_toggle=request.POST.get("allow_company_toggle") == "on",
+            )
+            return redirect("platform_core:company_comm_templates", company_id=company.id)
+
+    # Pre-fill from global template
+    prefill = {}
+    if global_tpl:
+        prefill = {
+            "event_key": global_tpl.event_key,
+            "channel": global_tpl.channel,
+            "recipient_type": global_tpl.recipient_type,
+            "title_template": global_tpl.title_template,
+            "body_template": global_tpl.body_template,
+            "action_label": global_tpl.action_label,
+            "action_url_template": global_tpl.action_url_template,
+        }
+
+    return render(request, "platform_core/comm_templates/company_form.html", {
+        "company": company,
+        "prefill": prefill,
+        "global_tpl": global_tpl,
+        "errors": errors,
+        "is_edit": False,
+    })
+
+
+@require_platform_owner
+def company_template_edit(request: HttpRequest, company_id: int, template_id: int) -> HttpResponse:
+    """Edit a company-specific template."""
+    from apps.tenants.models import Company
+
+    company = get_object_or_404(Company, id=company_id)
+    tpl = get_object_or_404(CommunicationTemplate, id=template_id, company=company)
+    errors = {}
+
+    if request.method == "POST":
+        title = request.POST.get("title_template", "").strip()
+        body = request.POST.get("body_template", "").strip()
+        action_label = request.POST.get("action_label", "").strip()
+        action_url = request.POST.get("action_url_template", "").strip()
+
+        valid_title, invalid_title = CommunicationTemplateService.validate_placeholders(title)
+        valid_body, invalid_body = CommunicationTemplateService.validate_placeholders(body)
+        if not valid_title or not valid_body:
+            errors["placeholders"] = f"\u0645\u062a\u063a\u06cc\u0631\u0647\u0627\u06cc \u063a\u06cc\u0631\u0645\u062c\u0627\u0632: {', '.join(invalid_title + invalid_body)}"
+
+        if action_url and not CommunicationTemplateService.validate_action_url(action_url):
+            errors["action_url"] = "\u0622\u062f\u0631\u0633 \u0641\u0642\u0637 \u0645\u06cc\u200c\u062a\u0648\u0627\u0646\u062f \u062f\u0627\u062e\u0644\u06cc \u0628\u0627\u0634\u062f."
+
+        if not errors:
+            tpl.title_template = title
+            tpl.body_template = body
+            tpl.action_label = action_label
+            tpl.action_url_template = action_url
+            tpl.is_active = request.POST.get("is_active") == "on"
+            tpl.is_required = request.POST.get("is_required") == "on"
+            tpl.allow_company_toggle = request.POST.get("allow_company_toggle") == "on"
+            tpl.save()
+            return redirect("platform_core:company_comm_templates", company_id=company.id)
+
+    return render(request, "platform_core/comm_templates/company_form.html", {
+        "company": company,
+        "tpl": tpl,
+        "prefill": {
+            "event_key": tpl.event_key,
+            "channel": tpl.channel,
+            "recipient_type": tpl.recipient_type,
+            "title_template": tpl.title_template,
+            "body_template": tpl.body_template,
+            "action_label": tpl.action_label,
+            "action_url_template": tpl.action_url_template,
+        },
+        "errors": errors,
+        "is_edit": True,
+    })
+
+
+@require_platform_owner
+def company_template_reset(request: HttpRequest, company_id: int, template_id: int) -> HttpResponse:
+    """Reset (delete) a company-specific override back to global default."""
+    from apps.tenants.models import Company
+    company = get_object_or_404(Company, id=company_id)
+    tpl = get_object_or_404(CommunicationTemplate, id=template_id, company=company)
+
+    if request.method == "POST":
+        tpl.delete()
+
+    return redirect("platform_core:company_comm_templates", company_id=company.id)

@@ -54,6 +54,12 @@ urlpatterns = [
     path("companies/<int:company_id>/activate/", views.company_activate, name="company_activate"),
     path("companies/<int:company_id>/deactivate/", views.company_deactivate, name="company_deactivate"),
 
+    # Company-specific communication templates (from company detail)
+    path("companies/<int:company_id>/templates/", views_comm_templates.company_templates_list, name="company_comm_templates"),
+    path("companies/<int:company_id>/templates/create/", views_comm_templates.company_template_create, name="company_comm_template_create"),
+    path("companies/<int:company_id>/templates/<int:template_id>/edit/", views_comm_templates.company_template_edit, name="company_comm_template_edit"),
+    path("companies/<int:company_id>/templates/<int:template_id>/reset/", views_comm_templates.company_template_reset, name="company_comm_template_reset"),
+
     # Plan Management
     path("plans/", views.plan_list, name="plans"),
     path("plans/create/", views.plan_create, name="plan_create"),
