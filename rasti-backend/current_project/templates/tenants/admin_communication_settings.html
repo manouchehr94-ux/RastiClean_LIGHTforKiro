@@ -1,0 +1,75 @@
+{% extends "base_dashboard.html" %}
+{% block title %}تنظیمات ارتباطی - {{ company.name }}{% endblock %}
+{% block sidebar_brand %}{{ company.name }}{% endblock %}
+{% block logout_url %}/{{ company.code }}/login/logout/{% endblock %}
+{% block sidebar_nav %}
+<li><a href="/{{ company.code }}/admin/">داشبورد</a></li>
+<li><a href="/{{ company.code }}/admin/communication-settings/" class="active">تنظیمات ارتباطی</a></li>
+<li><a href="/{{ company.code }}/admin/settings/">تنظیمات سایت</a></li>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>تنظیمات ارتباطی</h1>
+</div>
+
+<p class="muted-text" style="margin-bottom:1.5rem;">
+    در این صفحه می‌توانید اعلان‌ها و پیام‌های قابل تنظیم را برای شرکت خود فعال یا غیرفعال کنید.
+    <br>متن و محتوای قالب‌ها توسط مدیریت پلتفرم تعیین شده و قابل ویرایش نیست.
+</p>
+
+{% if templates_data %}
+<div class="card">
+    <div class="table-wrapper">
+        <table>
+            <thead>
+                <tr>
+                    <th>رویداد</th>
+                    <th>کانال</th>
+                    <th>گیرنده</th>
+                    <th>وضعیت</th>
+                    <th>عملیات</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in templates_data %}
+                <tr>
+                    <td>{{ item.template.title|default:item.template.event_key }}</td>
+                    <td>{{ item.template.get_channel_display }}</td>
+                    <td>{{ item.template.get_recipient_type_display }}</td>
+                    <td>
+                        {% if item.is_required %}
+                        <span class="badge badge-done">الزامی</span>
+                        {% elif item.is_enabled %}
+                        <span class="badge badge-done">فعال</span>
+                        {% else %}
+                        <span class="badge badge-cancelled">غیرفعال</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if item.can_toggle %}
+                        <form method="post" style="display:inline;">
+                            {% csrf_token %}
+                            <input type="hidden" name="template_id" value="{{ item.template.id }}">
+                            {% if item.is_enabled %}
+                            <button type="submit" name="action" value="disable" class="btn btn-sm btn-outline">غیرفعال‌سازی</button>
+                            {% else %}
+                            <button type="submit" name="action" value="enable" class="btn btn-sm btn-success">فعال‌سازی</button>
+                            {% endif %}
+                        </form>
+                        {% else %}
+                        <span class="text-xs text-gray-400">غیرقابل تغییر</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% else %}
+<div class="card">
+    <p style="color:#64748b;">هنوز قالب ارتباطی قابل تنظیمی توسط مدیریت پلتفرم تعریف نشده است.</p>
+</div>
+{% endif %}
+{% endblock %}

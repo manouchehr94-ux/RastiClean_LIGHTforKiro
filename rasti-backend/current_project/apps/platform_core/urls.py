@@ -10,6 +10,7 @@ from apps.accounts import views as auth_views
 
 from . import views
 from . import views_messages
+from . import views_communication
 
 app_name = "platform_core"
 
@@ -28,6 +29,11 @@ urlpatterns = [
     path("messages/outbox/", views_messages.message_outbox, name="messages_outbox"),
     path("messages/create/", views_messages.message_create, name="messages_create"),
     path("messages/<int:message_id>/", views_messages.message_detail, name="messages_detail"),
+
+    # Communication Templates
+    path("communication-templates/", views_communication.template_list, name="comm_templates"),
+    path("communication-templates/create/", views_communication.template_create, name="comm_template_create"),
+    path("communication-templates/<int:template_id>/edit/", views_communication.template_edit, name="comm_template_edit"),
 
     # Company Management
     path("companies/", views.company_list, name="companies"),

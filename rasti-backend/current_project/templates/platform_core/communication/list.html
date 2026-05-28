@@ -1,0 +1,66 @@
+{% extends "layouts/dashboard.html" %}
+
+{% block title %}قالب‌های ارتباطی - پلتفرم{% endblock %}
+{% block sidebar_brand %}رستی سرویس{% endblock %}
+{% block sidebar_subtitle %}پنل مدیریت پلتفرم{% endblock %}
+{% block user_role_label %}مدیر پلتفرم{% endblock %}
+{% block page_title %}قالب‌های ارتباطی{% endblock %}
+{% block page_description %}مدیریت قالب‌های پیامک، ایمیل و اعلان{% endblock %}
+{% block logout_url %}/owner-platform/logout/{% endblock %}
+
+{% block sidebar_nav %}
+{% include "includes/nav_platform.html" %}
+{% endblock %}
+
+{% block navbar_actions %}
+<a href="/owner-platform/communication-templates/create/"
+   class="inline-flex items-center gap-2 px-3 py-2 bg-brand-600 text-white text-sm font-medium rounded-lg hover:bg-brand-700 transition-smooth">
+    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+    قالب جدید
+</a>
+{% endblock %}
+
+{% block content %}
+{% if templates %}
+<div class="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+    <div class="overflow-x-auto">
+        <table class="w-full data-table">
+            <thead>
+                <tr class="bg-gray-50/50">
+                    <th class="px-5 py-3 text-right text-xs font-semibold text-gray-500 uppercase">رویداد</th>
+                    <th class="px-5 py-3 text-right text-xs font-semibold text-gray-500 uppercase">کانال</th>
+                    <th class="px-5 py-3 text-right text-xs font-semibold text-gray-500 uppercase">گیرنده</th>
+                    <th class="px-5 py-3 text-right text-xs font-semibold text-gray-500 uppercase">وضعیت</th>
+                    <th class="px-5 py-3 text-right text-xs font-semibold text-gray-500 uppercase">الزامی</th>
+                    <th class="px-5 py-3 text-right text-xs font-semibold text-gray-500 uppercase">تغییر توسط شرکت</th>
+                    <th class="px-5 py-3 text-right text-xs font-semibold text-gray-500 uppercase">عملیات</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100">
+                {% for tpl in templates %}
+                <tr class="hover:bg-gray-50/50 transition-colors">
+                    <td class="px-5 py-3 text-sm font-medium text-gray-900">{{ tpl.event_key }}</td>
+                    <td class="px-5 py-3 text-sm text-gray-500">{{ tpl.get_channel_display }}</td>
+                    <td class="px-5 py-3 text-sm text-gray-500">{{ tpl.get_recipient_type_display }}</td>
+                    <td class="px-5 py-3">
+                        {% if tpl.is_active %}
+                        {% include "includes/components/badge.html" with status="active" label="فعال" %}
+                        {% else %}
+                        {% include "includes/components/badge.html" with status="inactive" label="غیرفعال" %}
+                        {% endif %}
+                    </td>
+                    <td class="px-5 py-3 text-sm">{% if tpl.is_required %}بله{% else %}خیر{% endif %}</td>
+                    <td class="px-5 py-3 text-sm">{% if tpl.allow_company_toggle %}بله{% else %}خیر{% endif %}</td>
+                    <td class="px-5 py-3">
+                        <a href="/owner-platform/communication-templates/{{ tpl.id }}/edit/" class="text-sm text-brand-600 hover:text-brand-700 font-medium">ویرایش</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% else %}
+{% include "includes/components/empty_state.html" with title="قالبی تعریف نشده" description="اولین قالب ارتباطی خود را ایجاد کنید." action_url="/owner-platform/communication-templates/create/" action_label="قالب جدید" %}
+{% endif %}
+{% endblock %}

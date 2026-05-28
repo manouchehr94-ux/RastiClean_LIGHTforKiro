@@ -1,0 +1,87 @@
+{% extends "layouts/dashboard.html" %}
+
+{% block title %}{% if is_edit %}ویرایش{% else %}ایجاد{% endif %} قالب ارتباطی{% endblock %}
+{% block sidebar_brand %}رستی سرویس{% endblock %}
+{% block sidebar_subtitle %}پنل مدیریت پلتفرم{% endblock %}
+{% block user_role_label %}مدیر پلتفرم{% endblock %}
+{% block page_title %}{% if is_edit %}ویرایش قالب{% else %}قالب جدید{% endif %}{% endblock %}
+{% block logout_url %}/owner-platform/logout/{% endblock %}
+
+{% block sidebar_nav %}
+{% include "includes/nav_platform.html" %}
+{% endblock %}
+
+{% block content %}
+<div class="max-w-lg">
+    <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-6">
+        <form method="post" class="space-y-4">
+            {% csrf_token %}
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1.5">کلید رویداد</label>
+                    <input type="text" name="event_key" dir="ltr" value="{{ tpl.event_key|default:'' }}" class="block w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500" placeholder="order_created_admin">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1.5">کانال</label>
+                    <select name="channel" class="block w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm">
+                        <option value="IN_APP" {% if tpl.channel == "IN_APP" %}selected{% endif %}>اعلان داخلی</option>
+                        <option value="SMS" {% if tpl.channel == "SMS" %}selected{% endif %}>پیامک</option>
+                        <option value="EMAIL" {% if tpl.channel == "EMAIL" %}selected{% endif %}>ایمیل</option>
+                        <option value="INTERNAL" {% if tpl.channel == "INTERNAL" %}selected{% endif %}>پیام داخلی</option>
+                    </select>
+                </div>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1.5">نوع گیرنده</label>
+                <select name="recipient_type" class="block w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm">
+                    <option value="COMPANY_ADMIN" {% if tpl.recipient_type == "COMPANY_ADMIN" %}selected{% endif %}>مدیر شرکت</option>
+                    <option value="TECHNICIAN" {% if tpl.recipient_type == "TECHNICIAN" %}selected{% endif %}>تکنسین</option>
+                    <option value="CUSTOMER" {% if tpl.recipient_type == "CUSTOMER" %}selected{% endif %}>مشتری</option>
+                    <option value="PLATFORM_OWNER" {% if tpl.recipient_type == "PLATFORM_OWNER" %}selected{% endif %}>مدیر پلتفرم</option>
+                </select>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1.5">عنوان</label>
+                <input type="text" name="title" value="{{ tpl.title|default:'' }}" class="block w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1.5">متن قالب</label>
+                <textarea name="body" rows="4" class="block w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm resize-y">{{ tpl.body|default:'' }}</textarea>
+                <p class="text-xs text-gray-400 mt-1">از متغیرها استفاده کنید: order_id, customer_name, company_code</p>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1.5">برچسب دکمه</label>
+                    <input type="text" name="action_label" value="{{ tpl.action_label|default:'' }}" class="block w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm" placeholder="مشاهده سفارش">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1.5">URL دکمه</label>
+                    <input type="text" name="action_url_template" dir="ltr" value="{{ tpl.action_url_template|default:'' }}" class="block w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm">
+                </div>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1.5">متغیرهای مجاز</label>
+                <input type="text" name="allowed_placeholders" dir="ltr" value="{{ tpl.allowed_placeholders|default:'' }}" class="block w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm" placeholder="order_id, customer_name, company_code">
+            </div>
+            <div class="flex items-center gap-6 pt-2">
+                <label class="flex items-center gap-2 text-sm">
+                    <input type="checkbox" name="is_active" {% if tpl.is_active or not is_edit %}checked{% endif %} class="w-4 h-4 rounded border-gray-300 text-brand-600">
+                    فعال
+                </label>
+                <label class="flex items-center gap-2 text-sm">
+                    <input type="checkbox" name="is_required" {% if tpl.is_required %}checked{% endif %} class="w-4 h-4 rounded border-gray-300 text-brand-600">
+                    الزامی (شرکت نمی‌تواند غیرفعال کند)
+                </label>
+                <label class="flex items-center gap-2 text-sm">
+                    <input type="checkbox" name="allow_company_toggle" {% if tpl.allow_company_toggle or not is_edit %}checked{% endif %} class="w-4 h-4 rounded border-gray-300 text-brand-600">
+                    قابل تغییر توسط شرکت
+                </label>
+            </div>
+            <div class="flex items-center gap-3 pt-2">
+                <button type="submit" class="px-5 py-2.5 bg-brand-600 text-white text-sm font-semibold rounded-xl hover:bg-brand-700 transition-smooth">{% if is_edit %}ذخیره{% else %}ایجاد{% endif %}</button>
+                <a href="/owner-platform/communication-templates/" class="text-sm text-gray-500 hover:text-gray-700">انصراف</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

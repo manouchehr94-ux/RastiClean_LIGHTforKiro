@@ -166,3 +166,128 @@ class PlatformMessage(models.Model):
 
     def __str__(self) -> str:
         return f"{self.subject} ({self.get_status_display()})"
+
+
+
+class CommunicationTemplate(models.Model):
+    """
+    Platform-owned communication template.
+
+    ONLY Platform Owner can create/edit these.
+    Tenant companies can ONLY toggle is_enabled for their own company
+    (via CommunicationTemplateCompanySetting) when allow_company_toggle=True.
+
+    Resolution order:
+    1. If is_active=False → globally disabled, never used
+    2. If is_required=True → always used, tenant cannot disable
+    3. If allow_company_toggle=True → check CommunicationTemplateCompanySetting
+    4. If company setting is_enabled=False → skip for that company
+    5. Otherwise → use this template
+    """
+
+    class Channel(models.TextChoices):
+        SMS = "SMS", "پیامک"
+        EMAIL = "EMAIL", "ایمیل"
+        IN_APP = "IN_APP", "اعلان داخلی"
+        INTERNAL = "INTERNAL", "پیام داخلی"
+
+    class RecipientType(models.TextChoices):
+        COMPANY_ADMIN = "COMPANY_ADMIN", "مدیر شرکت"
+        TECHNICIAN = "TECHNICIAN", "تکنسین"
+        CUSTOMER = "CUSTOMER", "مشتری"
+        PLATFORM_OWNER = "PLATFORM_OWNER", "مدیر پلتفرم"
+
+    event_key = models.CharField(
+        max_length=80,
+        db_index=True,
+        help_text="Machine-readable event key (e.g. order_created_admin).",
+    )
+    channel = models.CharField(max_length=20, choices=Channel.choices)
+    recipient_type = models.CharField(max_length=20, choices=RecipientType.choices)
+    title = models.CharField(max_length=300, help_text="Notification/message title.")
+    body = models.TextField(help_text="Template body. Supports {{ placeholders }}.")
+    action_label = models.CharField(
+        max_length=100, blank=True,
+        help_text="Button/link label (e.g. 'مشاهده سفارش').",
+    )
+    action_url_template = models.CharField(
+        max_length=300, blank=True,
+        help_text="URL template with placeholders (e.g. /{{ company_code }}/admin/orders/{{ order_id }}/).",
+    )
+    allowed_placeholders = models.TextField(
+        blank=True,
+        help_text="Comma-separated list of allowed placeholders.",
+    )
+
+    # Platform Owner control flags
+    is_active = models.BooleanField(
+        default=True,
+        help_text="Globally active. If False, never used anywhere.",
+    )
+    is_required = models.BooleanField(
+        default=False,
+        help_text="If True, tenant companies cannot disable this template.",
+    )
+    allow_company_toggle = models.BooleanField(
+        default=True,
+        help_text="If True, tenant admins can enable/disable for their company.",
+    )
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["event_key", "channel"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["event_key", "channel", "recipient_type"],
+                name="unique_comm_template_event_channel_recipient",
+            ),
+        ]
+        verbose_name = "Communication Template"
+        verbose_name_plural = "Communication Templates"
+
+    def __str__(self) -> str:
+        return f"{self.event_key} / {self.get_channel_display()} → {self.get_recipient_type_display()}"
+
+
+class CommunicationTemplateCompanySetting(models.Model):
+    """
+    Per-company toggle for a communication template.
+
+    Tenant admin can ONLY set is_enabled True/False.
+    They cannot edit the template content.
+    This row only exists if allow_company_toggle=True on the template.
+    """
+
+    company = models.ForeignKey(
+        "tenants.Company",
+        on_delete=models.CASCADE,
+        related_name="communication_settings",
+    )
+    template = models.ForeignKey(
+        CommunicationTemplate,
+        on_delete=models.CASCADE,
+        related_name="company_settings",
+    )
+    is_enabled = models.BooleanField(default=True)
+    updated_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True, blank=True,
+    )
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["company", "template"],
+                name="unique_comm_setting_per_company_template",
+            ),
+        ]
+        verbose_name = "Company Communication Setting"
+        verbose_name_plural = "Company Communication Settings"
+
+    def __str__(self) -> str:
+        status = "فعال" if self.is_enabled else "غیرفعال"
+        return f"{self.company} / {self.template.event_key} → {status}"

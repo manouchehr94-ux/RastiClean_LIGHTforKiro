@@ -20,6 +20,7 @@ These legacy paths now redirect to the correct role-specific panel.
 from django.urls import include, path
 
 from . import views, views_admin, views_branding
+from apps.platform_core import views_tenant_communication as tenant_comm_views
 from .views_redirects import (
     legacy_notifications_redirect,
     legacy_orders_catch_all,
@@ -54,6 +55,7 @@ urlpatterns = [
     path("admin/settings/", views_admin.admin_company_settings, name="admin_company_settings"),
     path("admin/settings/notifications/", views_admin.admin_notification_settings, name="admin_notification_settings"),
     path("admin/settings/operators/", views_admin.admin_operator_list, name="admin_operator_list"),
+    path("admin/communication-settings/", tenant_comm_views.communication_settings, name="admin_communication_settings"),
     # Admin: Services CRUD
 
     # Admin: Base data management
