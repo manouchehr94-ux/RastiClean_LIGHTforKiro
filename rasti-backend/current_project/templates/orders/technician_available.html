@@ -1,4 +1,5 @@
 {% extends "base_dashboard.html" %}
+{% load jalali_tags %}
 
 {% block title %}سفارش‌های جدید - {{ company.name }}{% endblock %}
 {% block sidebar_brand %}{{ company.name }}{% endblock %}
@@ -30,11 +31,12 @@
     </div>
 
     <div class="info-grid compact-info">
-        <div><span>تاریخ انجام</span><strong>{{ entry.order.display_service_date_jalali|default:"-" }}</strong></div>
-        <div><span>مشتری</span><strong>{{ entry.order.display_customer_name|default:"-" }}</strong></div>
-        <div><span>شماره تماس</span><strong dir="ltr">{{ entry.order.display_customer_phone|default:"-" }}</strong></div>
-        <div class="wide"><span>آدرس</span><strong>{{ entry.order.address|default:"-" }}</strong></div>
-        {% if entry.order.description %}<div class="wide"><span>توضیحات</span><strong>{{ entry.order.description }}</strong></div>{% endif %}
+        <div class="tech-field"><span class="tech-field-label">تاریخ انجام:</span><span class="tech-field-value">{{ entry.order.display_service_date_jalali|default:"-" }}</span></div>
+        <div class="tech-field"><span class="tech-field-label">مشتری:</span><span class="tech-field-value">{{ entry.order.display_customer_name|default:"-" }}</span></div>
+        <div class="tech-field"><span class="tech-field-label">شماره تماس:</span><span class="tech-field-value" dir="ltr">{{ entry.order.display_customer_phone|default:"-" }}</span></div>
+        <div class="tech-field wide"><span class="tech-field-label">آدرس:</span><span class="tech-field-value">{{ entry.order.address|default:"-" }}</span></div>
+        {% if entry.order.description %}<div class="tech-field wide"><span class="tech-field-label">توضیحات:</span><span class="tech-field-value">{{ entry.order.description }}</span></div>{% endif %}
+        <div class="tech-field"><span class="tech-field-label">تاریخ ثبت:</span><span class="tech-field-value">{{ entry.order.created_at|jalali_date }}</span></div>
     </div>
 
     {% if entry.item_values %}

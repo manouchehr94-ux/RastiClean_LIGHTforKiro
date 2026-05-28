@@ -1,0 +1,161 @@
+{% extends "layouts/technician.html" %}
+{% load jalali_tags %}
+
+{% block title %}فاکتور {{ invoice.invoice_number }} - {{ company.name }}{% endblock %}
+
+{% block content %}
+{# Header with back link #}
+<div class="mb-5">
+    <a href="/{{ company.code }}/tech/invoices/" class="text-xs text-brand-600 hover:text-brand-700 font-medium mb-2 inline-block">&larr; بازگشت به لیست فاکتورها</a>
+    <div class="flex items-center justify-between">
+        <h1 class="text-lg font-bold text-gray-900">فاکتور {{ invoice.invoice_number }}</h1>
+        <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium
+            {% if invoice.status == 'paid' %}bg-emerald-50 text-emerald-700
+            {% elif invoice.status == 'issued' %}bg-blue-50 text-blue-700
+            {% elif invoice.status == 'draft' %}bg-gray-100 text-gray-600
+            {% else %}bg-red-50 text-red-700{% endif %}">
+            {{ invoice.get_status_display }}
+        </span>
+    </div>
+</div>
+
+{# Invoice Info Card #}
+<div class="bg-white rounded-xl border border-gray-100 shadow-sm p-4 mb-4">
+    <h3 class="text-sm font-semibold text-gray-800 mb-3 border-b border-gray-100 pb-2">اطلاعات فاکتور</h3>
+    <div class="space-y-2">
+        <div class="tech-field">
+            <span class="tech-field-label">مشتری:</span>
+            <span class="tech-field-value">{{ invoice.display_customer_name|default:"-" }}</span>
+        </div>
+        <div class="tech-field">
+            <span class="tech-field-label">شماره تماس:</span>
+            <span class="tech-field-value" dir="ltr">{{ invoice.display_customer_phone|default:"-" }}</span>
+        </div>
+        {% if invoice.address_snapshot %}
+        <div class="tech-field">
+            <span class="tech-field-label">آدرس:</span>
+            <span class="tech-field-value">{{ invoice.address_snapshot }}</span>
+        </div>
+        {% endif %}
+        {% if invoice.service_title_snapshot %}
+        <div class="tech-field">
+            <span class="tech-field-label">خدمت:</span>
+            <span class="tech-field-value">{{ invoice.service_title_snapshot }}</span>
+        </div>
+        {% endif %}
+        {% if invoice.service_date_snapshot %}
+        <div class="tech-field">
+            <span class="tech-field-label">تاریخ خدمت:</span>
+            <span class="tech-field-value">{{ invoice.display_service_date_jalali }}</span>
+        </div>
+        {% endif %}
+        {% if invoice.order_id %}
+        <div class="tech-field">
+            <span class="tech-field-label">سفارش مرتبط:</span>
+            <span class="tech-field-value"><a href="/{{ company.code }}/tech/orders/{{ invoice.order_id }}/" class="text-brand-600 hover:text-brand-700">#{{ invoice.order_id }}</a></span>
+        </div>
+        {% endif %}
+        <div class="tech-field">
+            <span class="tech-field-label">تاریخ صدور:</span>
+            <span class="tech-field-value">{{ invoice.created_at|jalali_date }}</span>
+        </div>
+        {% if invoice.issued_at %}
+        <div class="tech-field">
+            <span class="tech-field-label">تاریخ صدور رسمی:</span>
+            <span class="tech-field-value">{{ invoice.issued_at|jalali_datetime }}</span>
+        </div>
+        {% endif %}
+        {% if invoice.paid_at %}
+        <div class="tech-field">
+            <span class="tech-field-label">تاریخ پرداخت:</span>
+            <span class="tech-field-value">{{ invoice.paid_at|jalali_datetime }}</span>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+{# Invoice Items #}
+{% with items=invoice.items.all %}
+{% if items %}
+<div class="bg-white rounded-xl border border-gray-100 shadow-sm p-4 mb-4">
+    <h3 class="text-sm font-semibold text-gray-800 mb-3 border-b border-gray-100 pb-2">اقلام فاکتور</h3>
+    <div class="space-y-2">
+        {% for item in items %}
+        <div class="flex items-center justify-between py-1.5 {% if not forloop.last %}border-b border-gray-50{% endif %}">
+            <div class="min-w-0 flex-1">
+                <p class="text-sm text-gray-800 truncate">{{ item.description }}</p>
+                <p class="text-xs text-gray-500">{{ item.quantity }} &times; {{ item.unit_price }} تومان</p>
+            </div>
+            <span class="text-sm font-bold text-gray-900 flex-shrink-0 mr-3">{{ item.total_price }} تومان</span>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+{% endwith %}
+
+{# Totals #}
+<div class="bg-white rounded-xl border border-gray-100 shadow-sm p-4 mb-4">
+    <h3 class="text-sm font-semibold text-gray-800 mb-3 border-b border-gray-100 pb-2">جمع‌بندی مالی</h3>
+    <div class="space-y-1.5">
+        <div class="tech-field">
+            <span class="tech-field-label">جمع اقلام:</span>
+            <span class="tech-field-value">{{ invoice.subtotal }} تومان</span>
+        </div>
+        {% if invoice.tax_amount %}
+        <div class="tech-field">
+            <span class="tech-field-label">مالیات:</span>
+            <span class="tech-field-value">{{ invoice.tax_amount }} تومان</span>
+        </div>
+        {% endif %}
+        {% if invoice.discount_amount %}
+        <div class="tech-field">
+            <span class="tech-field-label">تخفیف:</span>
+            <span class="tech-field-value text-emerald-600">{{ invoice.discount_amount }}- تومان</span>
+        </div>
+        {% endif %}
+        <div class="tech-field pt-2 border-t border-gray-100">
+            <span class="tech-field-label font-bold">مبلغ نهایی:</span>
+            <span class="tech-field-value font-bold text-brand-700">{{ invoice.total_amount }} تومان</span>
+        </div>
+    </div>
+</div>
+
+{# Notes #}
+{% if invoice.notes %}
+<div class="bg-white rounded-xl border border-gray-100 shadow-sm p-4 mb-4">
+    <h3 class="text-sm font-semibold text-gray-800 mb-2">یادداشت</h3>
+    <p class="text-sm text-gray-600">{{ invoice.notes }}</p>
+</div>
+{% endif %}
+
+{# Actions: SMS link, Print link #}
+<div class="bg-white rounded-xl border border-gray-100 shadow-sm p-4 space-y-2">
+    <h3 class="text-sm font-semibold text-gray-800 mb-3 border-b border-gray-100 pb-2">عملیات</h3>
+
+    {% if invoice.public_code %}
+    {# Print link #}
+    <a href="/{{ company.code }}/invoices/public/{{ invoice.public_code }}/print/"
+       target="_blank"
+       class="flex items-center gap-2 w-full px-4 py-2.5 text-sm font-medium text-gray-700 bg-gray-50 rounded-lg border border-gray-200 hover:bg-gray-100 transition-smooth">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/>
+        </svg>
+        مشاهده نسخه چاپی
+    </a>
+
+    {# SMS Link #}
+    {% if invoice.customer_phone_snapshot %}
+    <a href="sms:{{ invoice.customer_phone_snapshot }}?body=فاکتور شماره {{ invoice.invoice_number }} - لینک: {{ request.scheme }}://{{ request.get_host }}/{{ company.code }}/invoices/public/{{ invoice.public_code }}/print/"
+       class="flex items-center gap-2 w-full px-4 py-2.5 text-sm font-medium text-brand-700 bg-brand-50 rounded-lg border border-brand-200 hover:bg-brand-100 transition-smooth">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"/>
+        </svg>
+        ارسال لینک فاکتور با پیامک (SMS)
+    </a>
+    {% endif %}
+    {% else %}
+    <p class="text-xs text-gray-500">لینک عمومی فاکتور هنوز تولید نشده است.</p>
+    {% endif %}
+</div>
+{% endblock %}

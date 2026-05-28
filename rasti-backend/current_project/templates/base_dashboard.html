@@ -84,7 +84,7 @@
 {% if request.user.is_authenticated and request.user.role == "TECHNICIAN" %}
     </main>
     <nav class="fixed bottom-0 inset-x-0 z-30 bg-white/95 backdrop-blur-lg border-t border-gray-200 shadow-[0_-4px_20px_rgba(0,0,0,0.08)] lg:max-w-lg lg:mx-auto lg:bottom-4 lg:rounded-2xl lg:border lg:shadow-xl">
-        <div class="grid grid-cols-4 h-16">
+        <div class="grid grid-cols-5 h-16">
             <a href="/{{ request.company.code }}/tech/"
                class="flex flex-col items-center justify-center gap-0.5 text-xs font-medium {% if request.path == '/'|add:request.company.code|add:'/tech/' %}text-brand-600{% else %}text-gray-500 hover:text-gray-700{% endif %} transition-smooth">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
@@ -99,6 +99,11 @@
                class="flex flex-col items-center justify-center gap-0.5 text-xs font-medium {% if '/tech/orders/my/' in request.path %}text-brand-600{% else %}text-gray-500 hover:text-gray-700{% endif %} transition-smooth">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
                 <span>سفارش‌های من</span>
+            </a>
+            <a href="/{{ request.company.code }}/tech/invoices/"
+               class="flex flex-col items-center justify-center gap-0.5 text-xs font-medium {% if '/tech/invoices/' in request.path %}text-brand-600{% else %}text-gray-500 hover:text-gray-700{% endif %} transition-smooth">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 14l6-6m-5.5.5h.01m4.99 5h.01M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16l3.5-2 3.5 2 3.5-2 3.5 2z"/></svg>
+                <span>فاکتورها</span>
             </a>
             <a href="/{{ request.company.code }}/tech/notifications/"
                class="flex flex-col items-center justify-center gap-0.5 text-xs font-medium {% if '/tech/notifications/' in request.path %}text-brand-600{% else %}text-gray-500 hover:text-gray-700{% endif %} transition-smooth">

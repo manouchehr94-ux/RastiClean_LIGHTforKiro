@@ -147,6 +147,7 @@ urlpatterns = [
     # =========================================================================
     path("tech/", include("apps.dashboard.urls_technician")),
     path("tech/orders/", include("apps.orders.urls_technician")),
+    path("tech/invoices/", include("apps.invoices.urls_technician")),
     path("tech/notifications/", include("apps.notifications.urls_technician")),
 
     # =========================================================================
