@@ -17,5 +17,6 @@ urlpatterns = [
     path("contact/", views.contact, name="contact"),
     path("register/", views.register, name="register"),
     path("register/verify/", views.register_verify, name="register_verify"),
+    path("register/resend-otp/", views.register_resend_otp, name="register_resend_otp"),
     path("register/success/", views.register_success, name="register_success"),
 ]

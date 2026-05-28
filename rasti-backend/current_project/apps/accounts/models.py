@@ -244,3 +244,23 @@ class OperatorPermission(models.Model):
     def __str__(self) -> str:
         return f"{self.company_id}:{self.operator_id}:{self.permission_key}={self.is_allowed}"
 
+
+
+
+class RegistrationOTP(models.Model):
+    """
+    OTP codes for company registration verification.
+    Links to session via session_key, expires after 5 minutes.
+    """
+
+    phone = models.CharField(max_length=15)
+    code = models.CharField(max_length=6)
+    created_at = models.DateTimeField(auto_now_add=True)
+    is_used = models.BooleanField(default=False)
+    session_key = models.CharField(max_length=64)
+
+    class Meta:
+        ordering = ["-created_at"]
+
+    def __str__(self) -> str:
+        return f"OTP: {self.phone} ({self.code})"
