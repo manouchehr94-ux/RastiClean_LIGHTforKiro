@@ -1,23 +1,84 @@
-{% extends "base_dashboard.html" %}
+{% extends "layouts/dashboard.html" %}
+
 {% block title %}اشتراک‌ها - پلتفرم{% endblock %}
-{% block sidebar_brand %}پنل مدیریت پلتفرم{% endblock %}
+{% block sidebar_brand %}رستی سرویس{% endblock %}
+{% block sidebar_subtitle %}پنل مدیریت پلتفرم{% endblock %}
+{% block user_role_label %}مدیر پلتفرم{% endblock %}
+{% block page_title %}مدیریت اشتراک‌ها{% endblock %}
+{% block page_description %}وضعیت اشتراک شرکت‌ها{% endblock %}
 {% block logout_url %}/loginlogin/logout/{% endblock %}
-{% block sidebar_nav %}<li><a href="/loginlogin/dashboard/">داشبورد</a></li><li><a href="/loginlogin/companies/">شرکت‌ها</a></li><li><a href="/loginlogin/plans/">پلن‌ها</a></li><li><a href="/loginlogin/subscriptions/" class="active">اشتراک‌ها</a></li>{% endblock %}
+
+{% block sidebar_nav %}
+{% include "includes/nav_platform.html" %}
+{% endblock %}
+
+{% block navbar_actions %}
+<a href="/loginlogin/subscriptions/create/"
+   class="inline-flex items-center gap-2 px-3 py-2 bg-brand-600 text-white text-sm font-medium rounded-lg hover:bg-brand-700 transition-smooth">
+    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+    <span class="hidden sm:inline">اشتراک جدید</span>
+</a>
+{% endblock %}
 
 {% block content %}
-<div class="page-header"><h1>مدیریت اشتراک‌ها</h1><a href="/loginlogin/subscriptions/create/" class="btn btn-primary">+ اشتراک جدید</a></div>
 {% if subscriptions %}
-<div class="card"><div class="table-wrapper"><table>
-<thead><tr><th>شرکت</th><th>پلن</th><th>وضعیت</th><th>شروع</th><th>انقضا</th><th>عملیات</th></tr></thead>
-<tbody>{% for s in subscriptions %}<tr>
-<td>{{ s.company.name }}</td><td>{{ s.plan.name }}</td>
-<td><span class="badge badge-{% if s.status == 'active' %}done{% elif s.status == 'trial' %}new{% elif s.status == 'expired' %}cancelled{% else %}cancelled{% endif %}">{{ s.get_status_display }}</span></td>
-<td>{{ s.started_at|date:"Y/m/d" }}</td><td>{{ s.expires_at|date:"Y/m/d" }}</td>
-<td>
-<a href="/loginlogin/subscriptions/{{ s.id }}/edit/" class="btn btn-sm btn-outline">ویرایش</a>
-{% if s.status != "active" %}<form method="post" action="/loginlogin/subscriptions/{{ s.id }}/activate/" style="display:inline;">{% csrf_token %}<button class="btn btn-sm btn-success">فعال</button></form>{% endif %}
-{% if s.status != "cancelled" %}<form method="post" action="/loginlogin/subscriptions/{{ s.id }}/cancel/" style="display:inline;">{% csrf_token %}<button class="btn btn-sm btn-danger">لغو</button></form>{% endif %}
-</td></tr>{% endfor %}</tbody>
-</table></div></div>
-{% else %}<div class="card"><p style="color:#64748b;">اشتراکی ثبت نشده.</p></div>{% endif %}
+<div class="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+    <div class="overflow-x-auto">
+        <table class="w-full data-table">
+            <thead>
+                <tr class="bg-gray-50/50">
+                    <th class="px-5 py-3 text-right text-xs font-semibold text-gray-500 uppercase">شرکت</th>
+                    <th class="px-5 py-3 text-right text-xs font-semibold text-gray-500 uppercase">پلن</th>
+                    <th class="px-5 py-3 text-right text-xs font-semibold text-gray-500 uppercase">وضعیت</th>
+                    <th class="px-5 py-3 text-right text-xs font-semibold text-gray-500 uppercase">شروع</th>
+                    <th class="px-5 py-3 text-right text-xs font-semibold text-gray-500 uppercase">انقضا</th>
+                    <th class="px-5 py-3 text-right text-xs font-semibold text-gray-500 uppercase">عملیات</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100">
+                {% for s in subscriptions %}
+                <tr class="hover:bg-gray-50/50 transition-colors">
+                    <td class="px-5 py-3 text-sm font-medium text-gray-900">{{ s.company.name }}</td>
+                    <td class="px-5 py-3 text-sm text-gray-500">{{ s.plan.name }}</td>
+                    <td class="px-5 py-3">
+                        {% if s.status == "active" %}
+                        {% include "includes/components/badge.html" with status="active" label="فعال" %}
+                        {% elif s.status == "trial" %}
+                        {% include "includes/components/badge.html" with status="new" label="آزمایشی" %}
+                        {% elif s.status == "expired" %}
+                        {% include "includes/components/badge.html" with status="inactive" label="منقضی" %}
+                        {% else %}
+                        {% include "includes/components/badge.html" with status="cancelled" label="لغو شده" %}
+                        {% endif %}
+                    </td>
+                    <td class="px-5 py-3 text-sm text-gray-500">{{ s.started_at|date:"Y/m/d" }}</td>
+                    <td class="px-5 py-3 text-sm text-gray-500">{{ s.expires_at|date:"Y/m/d" }}</td>
+                    <td class="px-5 py-3">
+                        <div class="flex items-center gap-2">
+                            <a href="/loginlogin/subscriptions/{{ s.id }}/edit/" class="text-xs text-brand-600 hover:text-brand-700 font-medium">ویرایش</a>
+                            {% if s.status != "active" %}
+                            <form method="post" action="/loginlogin/subscriptions/{{ s.id }}/activate/" class="inline">
+                                {% csrf_token %}
+                                <button type="submit" class="text-xs text-emerald-600 hover:text-emerald-700 font-medium">فعال</button>
+                            </form>
+                            {% endif %}
+                            {% if s.status != "cancelled" %}
+                            <form method="post" action="/loginlogin/subscriptions/{{ s.id }}/cancel/" class="inline">
+                                {% csrf_token %}
+                                <button type="submit" class="text-xs text-red-600 hover:text-red-700 font-medium">لغو</button>
+                            </form>
+                            {% endif %}
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% else %}
+<div class="bg-white rounded-xl border border-gray-100 shadow-sm">
+    {% include "includes/components/empty_state.html" with title="اشتراکی ثبت نشده" description="اولین اشتراک را ایجاد کنید." action_url="/loginlogin/subscriptions/create/" action_label="اشتراک جدید" %}
+</div>
+{% endif %}
 {% endblock %}

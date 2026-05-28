@@ -1,0 +1,12 @@
+{# Usage: {% include "includes/components/badge.html" with status="new" label="جدید" %} #}
+{# Status options: new, in_progress, waiting, done, cancelled, issued, paid, overdue, active, inactive #}
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold
+    {% if status == 'new' %}bg-blue-100 text-blue-800
+    {% elif status == 'in_progress' or status == 'waiting' %}bg-amber-100 text-amber-800
+    {% elif status == 'done' or status == 'paid' or status == 'active' %}bg-emerald-100 text-emerald-800
+    {% elif status == 'cancelled' or status == 'overdue' or status == 'inactive' %}bg-red-100 text-red-800
+    {% elif status == 'issued' %}bg-indigo-100 text-indigo-800
+    {% elif status == 'cancel_requested' %}bg-orange-100 text-orange-800
+    {% else %}bg-gray-100 text-gray-800{% endif %}">
+    {{ label }}
+</span>

@@ -1,40 +1,74 @@
-{% extends "base_dashboard.html" %}
+{% extends "layouts/dashboard.html" %}
 
 {% block title %}گزارش‌های پلتفرم - رستی سرویس{% endblock %}
-{% block sidebar_brand %}پنل مدیریت پلتفرم{% endblock %}
+{% block sidebar_brand %}رستی سرویس{% endblock %}
+{% block sidebar_subtitle %}پنل مدیریت پلتفرم{% endblock %}
+{% block user_role_label %}مدیر پلتفرم{% endblock %}
+{% block page_title %}گزارش‌های پلتفرم{% endblock %}
+{% block page_description %}آمار کلی عملکرد سیستم{% endblock %}
 {% block logout_url %}/loginlogin/logout/{% endblock %}
 
 {% block sidebar_nav %}
-<li><a href="/loginlogin/dashboard/">داشبورد</a></li>
-<li><a href="/loginlogin/reports/" class="active">گزارش‌ها</a></li>
+{% include "includes/nav_platform.html" %}
 {% endblock %}
 
 {% block content %}
-<div class="page-header"><h1>گزارش‌های پلتفرم</h1></div>
-
-<div class="stats-grid">
-    <div class="stat-card accent"><div class="stat-value">{{ company_summary.total }}</div><div class="stat-label">کل شرکت‌ها</div></div>
-    <div class="stat-card success"><div class="stat-value">{{ company_summary.active }}</div><div class="stat-label">فعال</div></div>
-    <div class="stat-card danger"><div class="stat-value">{{ company_summary.inactive }}</div><div class="stat-label">غیرفعال</div></div>
+{# Company Stats #}
+<div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+    {% include "includes/components/stat_card.html" with value=company_summary.total label="کل شرکت‌ها" icon="company" color="blue" %}
+    {% include "includes/components/stat_card.html" with value=company_summary.active label="فعال" icon="check" color="green" %}
+    {% include "includes/components/stat_card.html" with value=company_summary.inactive label="غیرفعال" icon="company" color="red" %}
 </div>
 
-<div class="card">
-    <div class="card-header">وضعیت اشتراک‌ها</div>
-    <div class="table-wrapper"><table>
-        <tr><td>مجموع</td><td>{{ subscription_summary.total }}</td></tr>
-        <tr><td>فعال</td><td>{{ subscription_summary.active }}</td></tr>
-        <tr><td>آزمایشی</td><td>{{ subscription_summary.trial }}</td></tr>
-        <tr><td>منقضی</td><td>{{ subscription_summary.expired }}</td></tr>
-    </table></div>
+{# Subscription Summary #}
+<div class="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden mb-6">
+    <div class="px-5 py-4 border-b border-gray-100">
+        <h3 class="text-sm font-semibold text-gray-800">وضعیت اشتراک‌ها</h3>
+    </div>
+    <div class="grid grid-cols-2 sm:grid-cols-4 divide-x divide-x-reverse divide-gray-100">
+        <div class="px-5 py-4 text-center">
+            <div class="text-xl font-bold text-gray-900">{{ subscription_summary.total }}</div>
+            <p class="text-xs text-gray-500 mt-1">مجموع</p>
+        </div>
+        <div class="px-5 py-4 text-center">
+            <div class="text-xl font-bold text-emerald-600">{{ subscription_summary.active }}</div>
+            <p class="text-xs text-gray-500 mt-1">فعال</p>
+        </div>
+        <div class="px-5 py-4 text-center">
+            <div class="text-xl font-bold text-amber-600">{{ subscription_summary.trial }}</div>
+            <p class="text-xs text-gray-500 mt-1">آزمایشی</p>
+        </div>
+        <div class="px-5 py-4 text-center">
+            <div class="text-xl font-bold text-red-600">{{ subscription_summary.expired }}</div>
+            <p class="text-xs text-gray-500 mt-1">منقضی</p>
+        </div>
+    </div>
 </div>
 
+{# Usage Table #}
 {% if usage %}
-<div class="card">
-    <div class="card-header">استفاده شرکت‌ها</div>
-    <div class="table-wrapper"><table>
-        <thead><tr><th>شرکت</th><th>تعداد سفارش</th></tr></thead>
-        <tbody>{% for u in usage %}<tr><td>{{ u.company.name }}</td><td>{{ u.order_count }}</td></tr>{% endfor %}</tbody>
-    </table></div>
+<div class="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+    <div class="px-5 py-4 border-b border-gray-100">
+        <h3 class="text-sm font-semibold text-gray-800">استفاده شرکت‌ها</h3>
+    </div>
+    <div class="overflow-x-auto">
+        <table class="w-full data-table">
+            <thead>
+                <tr class="bg-gray-50/50">
+                    <th class="px-5 py-3 text-right text-xs font-semibold text-gray-500 uppercase">شرکت</th>
+                    <th class="px-5 py-3 text-right text-xs font-semibold text-gray-500 uppercase">تعداد سفارش</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100">
+                {% for u in usage %}
+                <tr class="hover:bg-gray-50/50 transition-colors">
+                    <td class="px-5 py-3 text-sm font-medium text-gray-900">{{ u.company.name }}</td>
+                    <td class="px-5 py-3 text-sm text-gray-500">{{ u.order_count }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
 </div>
 {% endif %}
 {% endblock %}
