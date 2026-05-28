@@ -9,6 +9,7 @@ from django.urls import path
 from apps.accounts import views as auth_views
 
 from . import views
+from . import views_messages
 
 app_name = "platform_core"
 
@@ -20,6 +21,13 @@ urlpatterns = [
     # Dashboard + Reports
     path("dashboard/", views.platform_dashboard, name="dashboard"),
     path("reports/", views.platform_reports, name="reports"),
+
+    # Message Center
+    path("messages/", views_messages.message_index, name="messages"),
+    path("messages/inbox/", views_messages.message_inbox, name="messages_inbox"),
+    path("messages/outbox/", views_messages.message_outbox, name="messages_outbox"),
+    path("messages/create/", views_messages.message_create, name="messages_create"),
+    path("messages/<int:message_id>/", views_messages.message_detail, name="messages_detail"),
 
     # Company Management
     path("companies/", views.company_list, name="companies"),
