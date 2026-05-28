@@ -1,0 +1,43 @@
+{% extends "layouts/technician.html" %}
+
+{% block title %}اعلان‌ها - {{ company.name }}{% endblock %}
+
+{% block content %}
+<div class="tech-content-safe">
+
+{# Page Header #}
+<div class="mb-5">
+    <h1 class="text-lg font-bold text-gray-900">اعلان‌ها</h1>
+    <p class="text-sm text-gray-500 mt-0.5">{{ unread_count }} اعلان خوانده نشده</p>
+</div>
+
+{% if notifications %}
+<div style="max-width:100%;">
+    {% for n in notifications %}
+    <div class="tech-card" style="{% if not n.is_read %}background:#f0f9ff; border-right:3px solid #2563eb;{% endif %}">
+        <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:0.75rem;">
+            <div style="flex:1; min-width:0;">
+                <div class="tech-field">
+                    <span class="tech-field-value" style="{% if not n.is_read %}font-weight:700;{% else %}font-weight:500; color:#6b7280;{% endif %}">{{ n.title }}</span>
+                </div>
+                <div style="font-size:0.8rem; color:#4b5563; line-height:1.5; word-wrap:break-word; overflow-wrap:break-word;">{{ n.message|truncatewords:30 }}</div>
+            </div>
+            <div style="text-align:left; flex-shrink:0;">
+                <div class="tech-card-meta" style="white-space:nowrap;">{{ n.created_at|date:"Y/m/d H:i" }}</div>
+                {% if not n.is_read %}
+                <form method="post" action="/{{ company.code }}/tech/notifications/{{ n.id }}/read/" style="margin-top:0.35rem;">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-outline" style="font-size:0.7rem; padding:0.25rem 0.5rem;">خوانده شد</button>
+                </form>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+{% include "includes/components/empty_state.html" with title="اعلانی ندارید" description="هنوز اعلانی برای شما ارسال نشده است." icon="bell" %}
+{% endif %}
+
+</div>{# /tech-content-safe #}
+{% endblock %}

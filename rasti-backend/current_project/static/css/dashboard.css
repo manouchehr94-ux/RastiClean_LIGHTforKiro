@@ -519,3 +519,76 @@ textarea.form-control { resize: vertical; }
     padding-top: 0.75rem;
 }
 .nav-group:first-child .nav-group-title { border-top: none; padding-top: 0.25rem; }
+
+
+
+/* =============================================================================
+   TECHNICIAN PORTAL ENHANCEMENTS
+   ============================================================================= */
+.tech-card {
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.75rem;
+    padding: 1rem;
+    margin-bottom: 0.75rem;
+}
+.tech-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 0.5rem;
+}
+.tech-card-title { font-size: 0.9rem; font-weight: 600; color: #1f2937; }
+.tech-card-meta { font-size: 0.8rem; color: #6b7280; margin-top: 0.25rem; }
+.tech-card-actions { margin-top: 0.75rem; display: flex; gap: 0.5rem; flex-wrap: wrap; }
+.tech-phone-link { color: #2563eb; text-decoration: none; direction: ltr; display: inline-block; }
+.tech-phone-link:hover { text-decoration: underline; }
+.tech-collapsible { max-height: 3em; overflow: hidden; transition: max-height 0.3s; }
+.tech-collapsible.expanded { max-height: none; }
+.tech-toggle { font-size: 0.75rem; color: #2563eb; cursor: pointer; margin-top: 0.25rem; display: inline-block; }
+.tech-toggle:hover { text-decoration: underline; }
+.tech-filter-bar { background: #fff; border: 1px solid #e5e7eb; border-radius: 0.75rem; padding: 1rem; margin-bottom: 1rem; }
+.tech-filter-bar .filter-row { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; }
+
+/* Desktop table hidden on mobile, cards hidden on desktop */
+@media (max-width: 768px) {
+    .tech-desktop-only { display: none !important; }
+    .tech-mobile-only { display: block !important; }
+}
+@media (min-width: 769px) {
+    .tech-desktop-only { display: block !important; }
+    .tech-mobile-only { display: none !important; }
+}
+
+
+/* =============================================================================
+   TECHNICIAN PORTAL - OVERFLOW & SPACING FIXES
+   ============================================================================= */
+html, body { overflow-x: hidden; max-width: 100vw; }
+.tech-card { word-wrap: break-word; overflow-wrap: break-word; max-width: 100%; }
+.tech-card * { max-width: 100%; }
+
+/* Label/value spacing fix */
+.tech-field { margin-bottom: 0.4rem; font-size: 0.85rem; line-height: 1.5; }
+.tech-field-label { color: #6b7280; font-size: 0.75rem; display: block; margin-bottom: 0.1rem; }
+.tech-field-value { color: #1f2937; font-weight: 500; }
+
+/* Bottom nav safe padding */
+.tech-content-safe { padding-bottom: 5rem; }
+
+/* Collapsed filters */
+.tech-filters-toggle { cursor: pointer; padding: 0.75rem 1rem; background: #fff; border: 1px solid #e5e7eb; border-radius: 0.75rem; display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; }
+.tech-filters-toggle .toggle-icon { transition: transform 0.2s; }
+.tech-filters-toggle.open .toggle-icon { transform: rotate(180deg); }
+.tech-filters-body { display: none; background: #fff; border: 1px solid #e5e7eb; border-radius: 0.75rem; padding: 1rem; margin-bottom: 1rem; }
+.tech-filters-body.open { display: block; }
+
+/* Collapsible summary */
+.tech-summary-toggle { cursor: pointer; padding: 0.75rem 1rem; background: #f8fafc; border: 1px solid #e5e7eb; border-radius: 0.75rem; margin-bottom: 0.75rem; }
+.tech-summary-body { display: none; padding: 1rem; background: #fff; border: 1px solid #e5e7eb; border-radius: 0.75rem; margin-bottom: 1rem; }
+.tech-summary-body.open { display: block; }
+
+/* Items list in cards */
+.tech-items-list { margin-top: 0.5rem; padding: 0.5rem; background: #f9fafb; border-radius: 0.5rem; font-size: 0.8rem; }
+.tech-items-list li { padding: 0.2rem 0; border-bottom: 1px solid #f1f5f9; }
+.tech-items-list li:last-child { border-bottom: none; }
