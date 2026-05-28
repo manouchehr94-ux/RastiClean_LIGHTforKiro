@@ -135,7 +135,9 @@ urlpatterns = [
     # =========================================================================
     # PUBLIC / CUSTOMER-FACING MODULES
     # =========================================================================
-    path("customer/", include("apps.dashboard.urls_customer")),
+    # Customer portal (deprecated — redirects to public page)
+    # Customer model is kept internally for order/contact data.
+    path("customer/", views.redirect_customer_to_public, name="customer_home_redirect"),
     path("invoices/", include("apps.invoices.urls")),
     path("payments/", include("apps.payments.urls")),
 

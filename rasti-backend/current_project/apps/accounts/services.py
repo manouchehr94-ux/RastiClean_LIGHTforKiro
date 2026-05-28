@@ -136,7 +136,7 @@ class RedirectService:
             UserRole.COMPANY_ADMIN: f"/{company_code}/admin/",
             UserRole.COMPANY_STAFF: f"/{company_code}/admin/",
             UserRole.TECHNICIAN: f"/{company_code}/tech/",
-            UserRole.CUSTOMER: f"/{company_code}/customer/",
+            UserRole.CUSTOMER: f"/{company_code}/",
         }
 
         return role_redirects.get(user.role, f"/{company_code}/")
