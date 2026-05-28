@@ -38,6 +38,7 @@ THIRD_PARTY_APPS = [
 
 # Order matters: platform_core and tenants load first
 LOCAL_APPS = [
+    "apps.common",
     "apps.platform_core",
     "apps.tenants",
     "apps.accounts",
