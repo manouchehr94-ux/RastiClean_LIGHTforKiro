@@ -198,3 +198,15 @@ def redirect_customer_to_public(request: HttpRequest, **kwargs) -> HttpResponse:
     if company:
         return redirect(f"/{company.code}/")
     return redirect("/")
+
+
+
+def redirect_customer_admin_to_orders(request: HttpRequest, **kwargs) -> HttpResponse:
+    """
+    Customer management pages are deprecated.
+    Redirect to orders list. Customer data is kept internally for orders.
+    """
+    company = getattr(request, "company", None)
+    if company:
+        return redirect(f"/{company.code}/admin/orders/")
+    return redirect("/")

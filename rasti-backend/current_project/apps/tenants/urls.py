@@ -79,9 +79,9 @@ urlpatterns = [
     path("admin/technicians/<int:technician_id>/delete/", views_admin.admin_technician_delete, name="admin_technician_delete"),
     path("admin/technicians/<int:technician_id>/toggle-active/", views_admin.admin_technician_toggle_active, name="admin_technician_toggle_active"),
 
-    # Admin: Customers
-    path("admin/customers/", views_admin.admin_customer_list, name="admin_customers"),
-    path("admin/customers/<int:customer_id>/", views_admin.admin_customer_detail, name="admin_customer_detail"),
+    # Admin: Customers (DEPRECATED — redirects to orders. Customer model kept for order data.)
+    path("admin/customers/", views.redirect_customer_admin_to_orders, name="admin_customers"),
+    path("admin/customers/<int:customer_id>/", views.redirect_customer_admin_to_orders, name="admin_customer_detail"),
 
     # Admin: Orders management
     path("admin/orders/", views_admin.admin_order_list, name="admin_orders"),

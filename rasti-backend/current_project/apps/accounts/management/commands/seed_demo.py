@@ -9,7 +9,6 @@ Creates:
     - platform_owner / password123 (PLATFORM_OWNER)
     - n54_admin / password123 (COMPANY_ADMIN, company=n54)
     - n54_tech / password123 (TECHNICIAN, company=n54)
-    - n54_customer / password123 (CUSTOMER, company=n54)
 """
 from django.core.management.base import BaseCommand
 
@@ -41,7 +40,7 @@ class Command(BaseCommand):
         else:
             self.stdout.write(f"  Company exists: {company.name} ({company.code})")
 
-        # Demo users
+        # Demo users (CUSTOMER role removed — no customer portal)
         demo_users = [
             {
                 "username": "platform_owner",
@@ -66,14 +65,6 @@ class Command(BaseCommand):
                 "company": company,
                 "first_name": "علی",
                 "last_name": "تکنسین",
-            },
-            {
-                "username": "n54_customer",
-                "phone": "09100000004",
-                "role": UserRole.CUSTOMER,
-                "company": company,
-                "first_name": "رضا",
-                "last_name": "مشتری",
             },
         ]
 
