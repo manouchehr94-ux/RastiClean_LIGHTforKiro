@@ -166,3 +166,73 @@ class PlatformMessage(models.Model):
 
     def __str__(self) -> str:
         return f"{self.subject} ({self.get_status_display()})"
+
+
+
+class PaymentGatewayProvider(models.TextChoices):
+    """Available payment gateway providers."""
+    MOCK = "MOCK", "آزمایشی (بدون اتصال)"
+    MANUAL = "MANUAL", "پرداخت دستی"
+    ZARINPAL_FUTURE = "ZARINPAL_FUTURE", "زرین‌پال (آینده)"
+    ZIBAL_FUTURE = "ZIBAL_FUTURE", "زیبال (آینده)"
+    IDPAY_FUTURE = "IDPAY_FUTURE", "آیدی‌پی (آینده)"
+    PAYPING_FUTURE = "PAYPING_FUTURE", "پی‌پینگ (آینده)"
+
+
+class PlatformPaymentGatewaySetting(models.Model):
+    """
+    Payment gateway for Platform Owner (SMS recharge, subscriptions).
+    Singleton — only one active setting.
+    """
+    provider = models.CharField(max_length=20, choices=PaymentGatewayProvider.choices, default=PaymentGatewayProvider.MOCK)
+    is_active = models.BooleanField(default=False)
+    merchant_id = models.CharField(max_length=200, blank=True, help_text="Merchant ID or API key (masked in UI)")
+    terminal_id = models.CharField(max_length=100, blank=True)
+    callback_base_url = models.CharField(max_length=300, blank=True, help_text="e.g. https://rastiservice.ir")
+    sandbox_mode = models.BooleanField(default=True)
+    description = models.TextField(blank=True)
+    updated_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "Platform Payment Gateway"
+
+    def __str__(self):
+        return f"Platform: {self.get_provider_display()} ({'active' if self.is_active else 'inactive'})"
+
+    @property
+    def merchant_id_masked(self):
+        if not self.merchant_id or len(self.merchant_id) < 5:
+            return "****"
+        return "****" + self.merchant_id[-4:]
+
+
+class CompanyPaymentGatewaySetting(models.Model):
+    """
+    Payment gateway for a tenant company (order/invoice payments).
+    Each company has its own gateway configuration.
+    """
+    company = models.OneToOneField("tenants.Company", on_delete=models.CASCADE, related_name="payment_gateway")
+    provider = models.CharField(max_length=20, choices=PaymentGatewayProvider.choices, default=PaymentGatewayProvider.MOCK)
+    is_active = models.BooleanField(default=False)
+    merchant_id = models.CharField(max_length=200, blank=True, help_text="Merchant ID or API key (masked in UI)")
+    terminal_id = models.CharField(max_length=100, blank=True)
+    callback_base_url = models.CharField(max_length=300, blank=True)
+    sandbox_mode = models.BooleanField(default=True)
+    description = models.TextField(blank=True)
+    updated_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "Company Payment Gateway"
+
+    def __str__(self):
+        return f"{self.company.name}: {self.get_provider_display()}"
+
+    @property
+    def merchant_id_masked(self):
+        if not self.merchant_id or len(self.merchant_id) < 5:
+            return "****"
+        return "****" + self.merchant_id[-4:]

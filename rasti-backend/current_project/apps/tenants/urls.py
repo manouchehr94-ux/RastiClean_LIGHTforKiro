@@ -26,6 +26,7 @@ from .views_redirects import (
     legacy_orders_redirect,
     legacy_reports_redirect,
 )
+from apps.platform_core import views_tenant_payment_gateway as tenant_pg_views
 
 app_name = "tenants"
 
@@ -54,6 +55,11 @@ urlpatterns = [
     path("admin/settings/", views_admin.admin_company_settings, name="admin_company_settings"),
     path("admin/settings/notifications/", views_admin.admin_notification_settings, name="admin_notification_settings"),
     path("admin/settings/operators/", views_admin.admin_operator_list, name="admin_operator_list"),
+
+    # Admin: Payment Gateway
+    path("admin/payment-gateway/", tenant_pg_views.tenant_gateway_settings, name="admin_payment_gateway"),
+    path("admin/payment-gateway/test/", tenant_pg_views.tenant_gateway_test, name="admin_payment_gateway_test"),
+
     # Admin: Services CRUD
 
     # Admin: Base data management

@@ -10,6 +10,7 @@ from apps.accounts import views as auth_views
 
 from . import views
 from . import views_messages
+from . import views_payment_gateways
 
 app_name = "platform_core"
 
@@ -28,6 +29,11 @@ urlpatterns = [
     path("messages/outbox/", views_messages.message_outbox, name="messages_outbox"),
     path("messages/create/", views_messages.message_create, name="messages_create"),
     path("messages/<int:message_id>/", views_messages.message_detail, name="messages_detail"),
+
+    # Payment Gateways
+    path("payment-gateways/", views_payment_gateways.platform_gateway_index, name="platform_gateways"),
+    path("payment-gateways/settings/", views_payment_gateways.platform_gateway_settings, name="platform_gateway_settings"),
+    path("payment-gateways/test/", views_payment_gateways.platform_gateway_test, name="platform_gateway_test"),
 
     # Company Management
     path("companies/", views.company_list, name="companies"),
