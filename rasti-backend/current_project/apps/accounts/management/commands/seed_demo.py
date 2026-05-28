@@ -12,9 +12,9 @@ Creates:
     - n54_tech / password123 (TECHNICIAN, company=n54) + Technician profile
     - n54_operator / password123 (COMPANY_STAFF, company=n54) + OperatorPermissions
     - Service category + 2 subcategories
-    - 2 Orders (new, in_progress)
-    - 1 Invoice with 2 items
-    - SMS pricing + wallet
+    - 2 Orders (1 assigned IN_PROGRESS, 1 unassigned NEW)
+    - 2 Invoices (1 without travel fee, 1 with travel fee)
+    - SMS pricing + wallet (1,000,000 rial)
     - Payment gateway settings (MOCK)
     - Communication templates (via seed_communication_templates logic)
 
@@ -30,7 +30,6 @@ from django.core.management.base import BaseCommand
 
 from apps.accounts.models import (
     CompanyUser,
-    Customer,
     OperatorPermission,
     Technician,
     UserRole,
@@ -51,6 +50,7 @@ from apps.tenants.models import (
     CompanyServiceSubCategory,
     CompanySettings,
 )
+
 
 
 class Command(BaseCommand):
@@ -102,22 +102,20 @@ class Command(BaseCommand):
         # 6. Service category + subcategories
         category, subcategories = self._create_service_categories(company)
 
-        # 7. Customer
-        customer = self._create_customer(company)
+        # 7. Orders (using inline customer fields, no Customer FK)
+        orders = self._create_orders(company, technician, category, subcategories)
 
-        # 8. Orders
-        orders = self._create_orders(company, customer, technician, category, subcategories)
+        # 8. Invoices (2 invoices for Order A)
+        self._create_invoices(company, orders[0])
 
-        # 9. Invoice
-        invoice = self._create_invoice(company, customer, orders[1])
-
-        # 10. SMS pricing + wallet
+        # 9. SMS pricing + wallet
         self._create_sms_settings(company, platform_owner)
 
-        # 11. Payment gateway settings
+        # 10. Payment gateway settings
         self._create_payment_gateway_settings(company, platform_owner)
 
-        # 12. Communication templates
+
+        # 11. Communication templates
         self.stdout.write("  Seeding communication templates...")
         call_command("seed_communication_templates", stdout=self.stdout)
 
@@ -128,16 +126,22 @@ class Command(BaseCommand):
         self.stdout.write(self.style.SUCCESS("=" * 60))
         self.stdout.write("")
         self.stdout.write("  Credentials (all use password: password123):")
-        self.stdout.write(f"    platform_owner  - Platform Owner (superuser)")
-        self.stdout.write(f"    n54_admin       - Company Admin (company=n54)")
-        self.stdout.write(f"    n54_tech        - Technician (company=n54)")
-        self.stdout.write(f"    n54_operator    - Operator/Staff (company=n54)")
+        self.stdout.write("    platform_owner  - Platform Owner (superuser)")
+        self.stdout.write("    n54_admin       - Company Admin (company=n54)")
+        self.stdout.write("    n54_tech        - Technician (company=n54)")
+        self.stdout.write("    n54_operator    - Operator/Staff (company=n54)")
         self.stdout.write("")
         self.stdout.write("  URLs:")
         self.stdout.write("    Platform admin: /loginlogin/")
         self.stdout.write("    Company admin:  /n54/admin/")
         self.stdout.write("    Tech panel:     /n54/tech/")
         self.stdout.write("")
+        self.stdout.write("  Items: \u0646\u0638\u0627\u0641\u062a \u0639\u0645\u0648\u0645\u06cc\u060c \u0634\u0633\u062a\u200c\u0648\u0634\u0648\u06cc \u0633\u0631\u0648\u06cc\u0633 \u0628\u0647\u062f\u0627\u0634\u062a\u06cc")
+        self.stdout.write("  Orders: 2 (1 assigned, 1 available)")
+        self.stdout.write("  Invoices: 2 (1 without travel, 1 with travel fee)")
+        self.stdout.write("  SMS wallet: 1,000,000 rial = 1923 SMS")
+        self.stdout.write("")
+
 
     def reset_demo(self):
         """Delete all demo data for company n54 and platform_owner."""
@@ -154,7 +158,7 @@ class Command(BaseCommand):
         self.stdout.write("  Demo data deleted.")
         self.stdout.write("")
 
-    # ─── Seed helpers ────────────────────────────────────────────────
+    # --- Seed helpers ---
 
     def _create_platform_owner(self) -> CompanyUser:
         user, created = CompanyUser.objects.get_or_create(
@@ -176,6 +180,7 @@ class Command(BaseCommand):
         else:
             self.stdout.write("  Exists: platform_owner")
         return user
+
 
     def _create_company(self) -> Company:
         company, created = Company.objects.get_or_create(
@@ -219,6 +224,7 @@ class Command(BaseCommand):
         )
 
         return company
+
 
     def _create_admin(self, company: Company) -> CompanyUser:
         user, created = CompanyUser.objects.get_or_create(
@@ -269,6 +275,7 @@ class Command(BaseCommand):
         )
         return user, technician
 
+
     def _create_operator(self, company: Company) -> CompanyUser:
         user, created = CompanyUser.objects.get_or_create(
             username="n54_operator",
@@ -307,6 +314,7 @@ class Command(BaseCommand):
 
         return user
 
+
     def _create_service_categories(
         self, company: Company
     ) -> tuple[CompanyServiceCategory, list[CompanyServiceSubCategory]]:
@@ -327,7 +335,7 @@ class Command(BaseCommand):
             title="\u0646\u0638\u0627\u0641\u062a \u0639\u0645\u0648\u0645\u06cc",
             defaults={
                 "description": "\u0646\u0638\u0627\u0641\u062a \u06a9\u0627\u0645\u0644 \u0645\u0646\u0632\u0644",
-                "base_price": Decimal("1500000"),
+                "base_price": Decimal("500000"),
                 "is_active": True,
                 "sort_order": 1,
             },
@@ -336,10 +344,10 @@ class Command(BaseCommand):
         sub2, _ = CompanyServiceSubCategory.objects.get_or_create(
             company=company,
             category=category,
-            title="\u0634\u0633\u062a\u0634\u0648\u06cc \u0641\u0631\u0634",
+            title="\u0634\u0633\u062a\u200c\u0648\u0634\u0648\u06cc \u0633\u0631\u0648\u06cc\u0633 \u0628\u0647\u062f\u0627\u0634\u062a\u06cc",
             defaults={
-                "description": "\u0634\u0633\u062a\u0634\u0648\u06cc \u0641\u0631\u0634 \u062f\u0631 \u0645\u0646\u0632\u0644",
-                "base_price": Decimal("800000"),
+                "description": "\u0634\u0633\u062a\u200c\u0648\u0634\u0648\u06cc \u06a9\u0627\u0645\u0644 \u0633\u0631\u0648\u06cc\u0633 \u0628\u0647\u062f\u0627\u0634\u062a\u06cc",
+                "base_price": Decimal("300000"),
                 "is_active": True,
                 "sort_order": 2,
             },
@@ -348,127 +356,164 @@ class Command(BaseCommand):
         self.stdout.write(f"  Subcategories: {sub1.title}, {sub2.title}")
         return category, [sub1, sub2]
 
-    def _create_customer(self, company: Company) -> Customer:
-        customer, created = Customer.objects.get_or_create(
-            company=company,
-            phone="09121234567",
-            defaults={
-                "first_name": "\u0631\u0636\u0627",
-                "last_name": "\u0645\u0634\u062a\u0631\u06cc",
-                "email": "reza@example.com",
-                "address": "\u062a\u0647\u0631\u0627\u0646\u060c \u0633\u0639\u0627\u062f\u062a\u200c\u0622\u0628\u0627\u062f\u060c \u0628\u0644\u0648\u0627\u0631 \u0627\u0635\u0644\u06cc",
-            },
-        )
-        if created:
-            self.stdout.write(f"  Created customer: {customer.first_name} {customer.last_name}")
-        else:
-            self.stdout.write(f"  Exists: customer {customer.phone}")
-        return customer
 
     def _create_orders(
         self,
         company: Company,
-        customer: Customer,
         technician: Technician,
         category: CompanyServiceCategory,
         subcategories: list[CompanyServiceSubCategory],
     ) -> list[Order]:
-        order1, created1 = Order.objects.get_or_create(
+        # Order A: assigned to technician, IN_PROGRESS
+        order_a, created_a = Order.objects.get_or_create(
             company=company,
             title="\u0646\u0638\u0627\u0641\u062a \u0639\u0645\u0648\u0645\u06cc \u0645\u0646\u0632\u0644",
-            customer=customer,
-            status=Order.Status.NEW,
+            status=Order.Status.IN_PROGRESS,
             defaults={
-                "customer_name": "\u0631\u0636\u0627 \u0645\u0634\u062a\u0631\u06cc",
-                "customer_phone": "09121234567",
-                "description": "\u0646\u0638\u0627\u0641\u062a \u06a9\u0627\u0645\u0644 \u0622\u067e\u0627\u0631\u062a\u0645\u0627\u0646 \u06f1\u06f2\u06f0 \u0645\u062a\u0631\u06cc",
-                "address": "\u062a\u0647\u0631\u0627\u0646\u060c \u0633\u0639\u0627\u062f\u062a\u200c\u0622\u0628\u0627\u062f\u060c \u0628\u0644\u0648\u0627\u0631 \u0627\u0635\u0644\u06cc\u060c \u067e\u0644\u0627\u06a9 \u06f8",
+                "customer_name": "\u0639\u0644\u06cc \u0631\u0636\u0627\u06cc\u06cc",
+                "customer_phone": "09121111111",
+                "technician": technician,
+                "description": "\u0644\u0637\u0641\u0627\u064b \u0642\u0628\u0644 \u0627\u0632 \u0645\u0631\u0627\u062c\u0639\u0647 \u062a\u0645\u0627\u0633 \u0628\u06af\u06cc\u0631\u06cc\u062f.",
+                "address": "\u062a\u0647\u0631\u0627\u0646\u060c \u0633\u0639\u0627\u062f\u062a\u200c\u0622\u0628\u0627\u062f\u060c \u062e\u06cc\u0627\u0628\u0627\u0646 \u0633\u0631\u0648\u060c \u067e\u0644\u0627\u06a9 \u06f1\u06f0",
+                "notes": "\u0644\u0637\u0641\u0627\u064b \u0642\u0628\u0644 \u0627\u0632 \u0645\u0631\u0627\u062c\u0639\u0647 \u062a\u0645\u0627\u0633 \u0628\u06af\u06cc\u0631\u06cc\u062f.",
                 "service_date": date(2025, 6, 15),
                 "service_category": category,
                 "service_subcategory": subcategories[0] if subcategories else None,
                 "priority": Order.Priority.NORMAL,
-                "price_estimate": Decimal("1500000"),
+                "price_estimate": Decimal("800000"),
             },
         )
 
-        order2, created2 = Order.objects.get_or_create(
+        # Order B: unassigned, NEW
+        order_b, created_b = Order.objects.get_or_create(
             company=company,
-            title="\u0634\u0633\u062a\u0634\u0648\u06cc \u0641\u0631\u0634 \u06f3 \u062a\u062e\u062a\u0647",
-            customer=customer,
-            status=Order.Status.IN_PROGRESS,
+            title="\u0646\u0638\u0627\u0641\u062a \u06a9\u0627\u0645\u0644 \u0648\u0627\u062d\u062f",
+            status=Order.Status.NEW,
             defaults={
-                "customer_name": "\u0631\u0636\u0627 \u0645\u0634\u062a\u0631\u06cc",
-                "customer_phone": "09121234567",
-                "technician": technician,
-                "description": "\u0634\u0633\u062a\u0634\u0648\u06cc \u06f3 \u062a\u062e\u062a\u0647 \u0641\u0631\u0634 \u06f6 \u0645\u062a\u0631\u06cc",
-                "address": "\u062a\u0647\u0631\u0627\u0646\u060c \u0633\u0639\u0627\u062f\u062a\u200c\u0622\u0628\u0627\u062f\u060c \u0628\u0644\u0648\u0627\u0631 \u0627\u0635\u0644\u06cc\u060c \u067e\u0644\u0627\u06a9 \u06f8",
-                "service_date": date(2025, 6, 10),
+                "customer_name": "\u0645\u0631\u06cc\u0645 \u0627\u062d\u0645\u062f\u06cc",
+                "customer_phone": "09122222222",
+                "technician": None,
+                "description": "\u0646\u0638\u0627\u0641\u062a \u06a9\u0627\u0645\u0644 \u0648\u0627\u062d\u062f \u06f9\u06f0 \u0645\u062a\u0631\u06cc",
+                "address": "\u062a\u0647\u0631\u0627\u0646\u060c \u067e\u0627\u0633\u062f\u0627\u0631\u0627\u0646\u060c \u062e\u06cc\u0627\u0628\u0627\u0646 \u06af\u0644\u0633\u062a\u0627\u0646\u060c \u067e\u0644\u0627\u06a9 \u06f2\u06f5",
+                "notes": "\u0646\u0638\u0627\u0641\u062a \u06a9\u0627\u0645\u0644 \u0648\u0627\u062d\u062f \u06f9\u06f0 \u0645\u062a\u0631\u06cc",
+                "service_date": date(2025, 6, 20),
                 "service_category": category,
-                "service_subcategory": subcategories[1] if len(subcategories) > 1 else None,
-                "priority": Order.Priority.HIGH,
-                "price_estimate": Decimal("2400000"),
-                "final_price": Decimal("2400000"),
+                "service_subcategory": subcategories[0] if subcategories else None,
+                "priority": Order.Priority.NORMAL,
+                "price_estimate": Decimal("900000"),
             },
         )
 
-        count = sum([created1, created2])
+        count = sum([created_a, created_b])
         self.stdout.write(f"  Orders: {count} created, {2 - count} existed")
-        return [order1, order2]
+        return [order_a, order_b]
 
-    def _create_invoice(
-        self, company: Company, customer: Customer, order: Order
-    ) -> Invoice:
-        # Check if an invoice already exists for this order
-        existing = Invoice.objects.filter(company=company, order=order).first()
-        if existing:
-            self.stdout.write(f"  Exists: invoice {existing.invoice_number}")
-            return existing
 
-        invoice_number = generate_invoice_number(company)
-        invoice = Invoice.objects.create(
+    def _create_invoices(self, company: Company, order_a: Order) -> None:
+        """Create 2 invoices for Order A: one without travel fee, one with."""
+        # Check if invoices already exist for this order
+        existing_count = Invoice.objects.filter(company=company, order=order_a).count()
+        if existing_count >= 2:
+            self.stdout.write(f"  Exists: {existing_count} invoices for Order A")
+            return
+
+        # Invoice 1: without travel fee
+        inv1_number = generate_invoice_number(company)
+        inv1 = Invoice.objects.create(
             company=company,
-            order=order,
-            customer=customer,
-            invoice_number=invoice_number,
+            order=order_a,
+            customer=None,
+            invoice_number=inv1_number,
             status=Invoice.Status.ISSUED,
-            customer_name_snapshot="\u0631\u0636\u0627 \u0645\u0634\u062a\u0631\u06cc",
-            customer_phone_snapshot="09121234567",
-            address_snapshot="\u062a\u0647\u0631\u0627\u0646\u060c \u0633\u0639\u0627\u062f\u062a\u200c\u0622\u0628\u0627\u062f",
+            customer_name_snapshot="\u0639\u0644\u06cc \u0631\u0636\u0627\u06cc\u06cc",
+            customer_phone_snapshot="09121111111",
+            address_snapshot="\u062a\u0647\u0631\u0627\u0646\u060c \u0633\u0639\u0627\u062f\u062a\u200c\u0622\u0628\u0627\u062f\u060c \u062e\u06cc\u0627\u0628\u0627\u0646 \u0633\u0631\u0648\u060c \u067e\u0644\u0627\u06a9 \u06f1\u06f0",
             technician_name_snapshot="\u0639\u0644\u06cc \u062a\u06a9\u0646\u0633\u06cc\u0646",
             technician_phone_snapshot="09100000003",
-            service_title_snapshot="\u0634\u0633\u062a\u0634\u0648\u06cc \u0641\u0631\u0634",
-            service_date_snapshot=date(2025, 6, 10),
-            subtotal=Decimal("2400000"),
-            tax_amount=Decimal("216000"),
+            service_title_snapshot="\u0646\u0638\u0627\u0641\u062a \u0639\u0645\u0648\u0645\u06cc \u0645\u0646\u0632\u0644",
+            service_date_snapshot=date(2025, 6, 15),
+            subtotal=Decimal("800000"),
+            tax_amount=Decimal("0"),
             discount_amount=Decimal("0"),
-            total_amount=Decimal("2616000"),
-            notes="\u0641\u0627\u06a9\u062a\u0648\u0631 \u0646\u0645\u0648\u0646\u0647 \u0628\u0631\u0627\u06cc \u062a\u0633\u062a",
+            total_amount=Decimal("800000"),
+            notes="\u0641\u0627\u06a9\u062a\u0648\u0631 \u0628\u062f\u0648\u0646 \u0647\u0632\u06cc\u0646\u0647 \u0627\u06cc\u0627\u0628 \u0648 \u0630\u0647\u0627\u0628",
         )
-
-        # Invoice items
         InvoiceItem.objects.create(
             company=company,
-            invoice=invoice,
-            description="\u0634\u0633\u062a\u0634\u0648\u06cc \u0641\u0631\u0634 \u06f6 \u0645\u062a\u0631\u06cc (3 \u062a\u062e\u062a\u0647)",
-            quantity=Decimal("3"),
-            unit_price=Decimal("800000"),
+            invoice=inv1,
+            description="\u0646\u0638\u0627\u0641\u062a \u0639\u0645\u0648\u0645\u06cc",
+            quantity=Decimal("1"),
+            unit_price=Decimal("500000"),
             discount_amount=Decimal("0"),
-            total_price=Decimal("2400000"),
+            total_price=Decimal("500000"),
             sort_order=1,
         )
         InvoiceItem.objects.create(
             company=company,
-            invoice=invoice,
-            description="\u0647\u0632\u06cc\u0646\u0647 \u0627\u06cc\u0627\u0628 \u0648 \u0630\u0647\u0627\u0628",
+            invoice=inv1,
+            description="\u0634\u0633\u062a\u200c\u0648\u0634\u0648\u06cc \u0633\u0631\u0648\u06cc\u0633 \u0628\u0647\u062f\u0627\u0634\u062a\u06cc",
             quantity=Decimal("1"),
-            unit_price=Decimal("0"),
+            unit_price=Decimal("300000"),
             discount_amount=Decimal("0"),
-            total_price=Decimal("0"),
+            total_price=Decimal("300000"),
             sort_order=2,
         )
+        self.stdout.write(f"  Created invoice 1: {inv1.invoice_number} (800,000 rial, no travel)")
 
-        self.stdout.write(f"  Created invoice: {invoice.invoice_number} (2 items)")
-        return invoice
+
+        # Invoice 2: with travel fee
+        inv2_number = generate_invoice_number(company)
+        inv2 = Invoice.objects.create(
+            company=company,
+            order=order_a,
+            customer=None,
+            invoice_number=inv2_number,
+            status=Invoice.Status.ISSUED,
+            customer_name_snapshot="\u0639\u0644\u06cc \u0631\u0636\u0627\u06cc\u06cc",
+            customer_phone_snapshot="09121111111",
+            address_snapshot="\u062a\u0647\u0631\u0627\u0646\u060c \u0633\u0639\u0627\u062f\u062a\u200c\u0622\u0628\u0627\u062f\u060c \u062e\u06cc\u0627\u0628\u0627\u0646 \u0633\u0631\u0648\u060c \u067e\u0644\u0627\u06a9 \u06f1\u06f0",
+            technician_name_snapshot="\u0639\u0644\u06cc \u062a\u06a9\u0646\u0633\u06cc\u0646",
+            technician_phone_snapshot="09100000003",
+            service_title_snapshot="\u0646\u0638\u0627\u0641\u062a \u0639\u0645\u0648\u0645\u06cc \u0645\u0646\u0632\u0644",
+            service_date_snapshot=date(2025, 6, 15),
+            subtotal=Decimal("900000"),
+            tax_amount=Decimal("0"),
+            discount_amount=Decimal("0"),
+            total_amount=Decimal("900000"),
+            notes="\u0641\u0627\u06a9\u062a\u0648\u0631 \u0628\u0627 \u0647\u0632\u06cc\u0646\u0647 \u0627\u06cc\u0627\u0628 \u0648 \u0630\u0647\u0627\u0628",
+        )
+        InvoiceItem.objects.create(
+            company=company,
+            invoice=inv2,
+            description="\u0646\u0638\u0627\u0641\u062a \u0639\u0645\u0648\u0645\u06cc",
+            quantity=Decimal("1"),
+            unit_price=Decimal("500000"),
+            discount_amount=Decimal("0"),
+            total_price=Decimal("500000"),
+            sort_order=1,
+        )
+        InvoiceItem.objects.create(
+            company=company,
+            invoice=inv2,
+            description="\u0634\u0633\u062a\u200c\u0648\u0634\u0648\u06cc \u0633\u0631\u0648\u06cc\u0633 \u0628\u0647\u062f\u0627\u0634\u062a\u06cc",
+            quantity=Decimal("1"),
+            unit_price=Decimal("300000"),
+            discount_amount=Decimal("0"),
+            total_price=Decimal("300000"),
+            sort_order=2,
+        )
+        InvoiceItem.objects.create(
+            company=company,
+            invoice=inv2,
+            description="\u0627\u06cc\u0627\u0628 \u0648 \u0630\u0647\u0627\u0628",
+            quantity=Decimal("1"),
+            unit_price=Decimal("100000"),
+            discount_amount=Decimal("0"),
+            total_price=Decimal("100000"),
+            sort_order=3,
+        )
+        self.stdout.write(f"  Created invoice 2: {inv2.invoice_number} (900,000 rial, with travel)")
+
 
     def _create_sms_settings(self, company: Company, platform_owner: CompanyUser):
         GlobalSMSPricingSetting.objects.update_or_create(
@@ -483,9 +528,9 @@ class Command(BaseCommand):
 
         wallet, _ = CompanySMSWallet.objects.get_or_create(
             company=company,
-            defaults={"balance_rial": 50000},
+            defaults={"balance_rial": 1000000},
         )
-        self.stdout.write(f"  SMS wallet: {wallet.balance_rial} rial")
+        self.stdout.write("  SMS wallet: 1,000,000 rial (1923 SMS remaining)")
 
     def _create_payment_gateway_settings(
         self, company: Company, platform_owner: CompanyUser
