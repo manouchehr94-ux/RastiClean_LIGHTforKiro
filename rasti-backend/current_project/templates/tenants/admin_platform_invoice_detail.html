@@ -1,0 +1,37 @@
+{% extends "base_dashboard.html" %}
+{% block title %}فاکتور {{ invoice.invoice_number }}{% endblock %}
+{% block sidebar_brand %}{{ company.name }}{% endblock %}
+{% block logout_url %}/{{ company.code }}/login/logout/{% endblock %}
+{% block sidebar_nav %}<li><a href="/{{ company.code }}/admin/">داشبورد</a></li><li><a href="/{{ company.code }}/admin/platform-invoices/" class="active">فاکتورهای پلتفرم</a></li>{% endblock %}
+
+{% block content %}
+<div class="page-header"><h1>جزئیات فاکتور</h1><a href="/{{ company.code }}/admin/platform-invoices/" class="btn btn-outline btn-sm">&larr; بازگشت</a></div>
+<div class="card" style="max-width:500px;">
+<table style="width:100%;"><tr><td style="color:#64748b;">شماره</td><td><strong>{{ invoice.invoice_number }}</strong></td></tr>
+<tr><td style="color:#64748b;">نوع</td><td>{{ invoice.get_invoice_type_display }}</td></tr>
+<tr><td style="color:#64748b;">مبلغ</td><td><strong>{{ invoice.amount_rial|floatformat:0 }} ریال</strong></td></tr>
+<tr><td style="color:#64748b;">وضعیت</td><td>{% if invoice.status == "PAID" %}<span class="badge badge-done">پرداخت شده</span>{% else %}<span class="badge badge-waiting">پرداخت نشده</span>{% endif %}</td></tr>
+<tr><td style="color:#64748b;">تاریخ ایجاد</td><td>{{ invoice.created_at|date:"Y/m/d H:i" }}</td></tr>
+{% if invoice.paid_at %}<tr><td style="color:#64748b;">تاریخ پرداخت</td><td>{{ invoice.paid_at|date:"Y/m/d H:i" }}</td></tr>{% endif %}
+</table>
+
+{% if invoice.status == "UNPAID" %}
+<div style="margin-top:1.5rem;padding:1rem;background:#eff6ff;border:1px solid #bfdbfe;border-radius:0.5rem;">
+<p style="font-size:0.875rem;color:#1e40af;margin-bottom:0.75rem;">درگاه آزمایشی فعال است. پرداخت واقعی انجام نمی‌شود.</p>
+<form method="post" action="/{{ company.code }}/admin/platform-invoices/{{ invoice.id }}/pay/">{% csrf_token %}
+<button type="submit" class="btn btn-primary">پرداخت آنلاین (آزمایشی)</button>
+</form></div>
+{% endif %}
+
+{% if transactions %}
+<div style="margin-top:1.5rem;"><h3 style="font-size:0.9rem;margin-bottom:0.5rem;">تاریخچه پرداخت</h3>
+<div class="table-wrapper"><table><thead><tr><th>شناسه</th><th>وضعیت</th><th>کد پیگیری</th><th>تاریخ</th></tr></thead>
+<tbody>{% for t in transactions %}<tr>
+<td>{{ t.authority }}</td>
+<td>{% if t.status == "VERIFIED" %}<span class="badge badge-done">تایید شده</span>{% elif t.status == "FAILED" %}<span class="badge badge-cancelled">ناموفق</span>{% else %}<span class="badge badge-waiting">{{ t.get_status_display }}</span>{% endif %}</td>
+<td>{{ t.tracking_code|default:"-" }}</td>
+<td>{{ t.created_at|date:"Y/m/d H:i" }}</td>
+</tr>{% endfor %}</tbody></table></div></div>
+{% endif %}
+</div>
+{% endblock %}
