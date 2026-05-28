@@ -11,6 +11,7 @@ ALLOWED_PLACEHOLDERS = {
     "company_name", "company_code", "operator_name", "technician_name",
     "order_id", "order_status", "invoice_id", "invoice_amount",
     "payment_status", "sms_balance", "sms_remaining_count", "tracking_code",
+    "customer_name", "customer_phone", "customer_address",
 }
 
 PLACEHOLDER_RE = re.compile(r"\{\{\s*(\w+)\s*\}\}")
