@@ -500,3 +500,22 @@ textarea.form-control { resize: vertical; }
     src: url('/static/fonts/Vazirmatn-ExtraBold.woff2') format('woff2');
     font-weight: 800; font-style: normal; font-display: swap;
 }
+
+
+
+/* =============================================================================
+   SIDEBAR NAVIGATION GROUPS
+   ============================================================================= */
+.nav-group { margin-bottom: 0.75rem; }
+.nav-group-title {
+    padding: 0.5rem 0.75rem 0.25rem;
+    font-size: 0.65rem;
+    font-weight: 700;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin-bottom: 0.15rem;
+    border-top: 1px solid rgba(51,65,85,0.3);
+    padding-top: 0.75rem;
+}
+.nav-group:first-child .nav-group-title { border-top: none; padding-top: 0.25rem; }
