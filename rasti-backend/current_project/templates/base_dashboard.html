@@ -1,102 +1,142 @@
-<link rel="stylesheet" href="/static/css/jalali_datepicker.css">
-﻿{% extends "base.html" %}
+{# ============================================================================
+   base_dashboard.html - BACKWARD COMPATIBILITY WRAPPER
+   
+   This file is kept for existing templates that extend it.
+   New templates should extend "layouts/dashboard.html" or "layouts/technician.html" directly.
+   ============================================================================ #}
+{% extends "base.html" %}
 
 {% block body %}
 {% if request.user.is_authenticated and request.user.role == "TECHNICIAN" %}
-<div class="technician-shell">
-    <header class="technician-topbar">
-        <div class="technician-brand">
-            <span class="technician-brand-mark">🔧</span>
-            <span>{{ request.company.name|default:"پنل نیرو" }}</span>
+{# === TECHNICIAN LAYOUT === #}
+<div class="min-h-screen bg-gray-50 pb-20 lg:pb-6">
+    <header class="sticky top-0 z-30 bg-slate-900 text-white shadow-lg">
+        <div class="max-w-4xl mx-auto flex items-center justify-between h-14 px-4">
+            <div class="flex items-center gap-2 min-w-0">
+                <div class="w-8 h-8 rounded-lg bg-brand-600 flex items-center justify-center flex-shrink-0">
+                    <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                    </svg>
+                </div>
+                <span class="text-sm font-bold truncate">{{ request.company.name|default:"پنل نیرو" }}</span>
+            </div>
+            <a href="/{{ request.company.code }}/login/logout/"
+               class="text-xs text-red-300 hover:text-red-200 border border-red-400/30 rounded-full px-3 py-1.5 transition-smooth">
+                خروج
+            </a>
         </div>
-        <a href="/{{ request.company.code }}/login/logout/" class="technician-logout">خروج</a>
     </header>
 
-    <main class="technician-content">
-{% else %}
-<div class="page-wrapper">
-    <!-- Mobile top bar (visible <768px via CSS) -->
-    <header class="mobile-header" id="mobileHeader">
-        <button class="menu-toggle" onclick="document.querySelector('.sidebar').classList.toggle('open')">&#9776;</button>
-        <span class="mobile-brand">{% block sidebar_brand %}رستی سرویس{% endblock %}</span>
-        <a href="{% block logout_url %}/{% endblock %}" class="mobile-logout">خروج</a>
-    </header>
-
-    <!-- Sidebar (desktop: visible, mobile: slide-in overlay) -->
-    <aside class="sidebar">
-        <div class="sidebar-brand" id="sidebarBrand"></div>
-        <ul class="sidebar-nav">
-            {% block sidebar_nav %}{% endblock %}
-            {% if request.company and request.path|slice:":8" != "/loginlo" %}
-            <li class="sidebar-section">ورود اطلاعات پایه</li>
-            <li><a href="/{{ request.company.code }}/admin/base-data/">داشبورد اطلاعات پایه</a></li>
-            <li><a href="/{{ request.company.code }}/admin/base-data/categories/" {% if '/admin/base-data/categories/' in request.path %}class="active"{% endif %}>رسته‌های خدماتی</a></li>
-            <li><a href="/{{ request.company.code }}/admin/base-data/items/" {% if '/admin/base-data/items/' in request.path %}class="active"{% endif %}>آیتم‌های سفارش</a></li>
-            <li><a href="/{{ request.company.code }}/admin/technicians/" {% if '/admin/technicians/' in request.path %}class="active"{% endif %}>نیروهای خدماتی</a></li>
-            <li><a href="/{{ request.company.code }}/admin/settings/operators/" {% if '/admin/settings/operators/' in request.path %}class="active"{% endif %}>اپراتورها</a></li>
-            <li class="sidebar-section">تنظیمات</li>
-            <li><a href="/{{ request.company.code }}/admin/settings/" {% if '/admin/settings/' in request.path %}class="active"{% endif %}>تنظیمات سایت</a></li>
-            {% endif %}
-        </ul>
-        <div class="sidebar-footer">
-            <span class="sidebar-user">{{ request.user.get_full_name }}</span>
-            <a href="#" id="sidebarLogout" class="sidebar-logout btn btn-sm btn-outline" style="color:#cbd5e1;border-color:#475569;">خروج</a>
-        </div>
-    </aside>
-
-    <!-- Main content -->
-    <main class="main-content">
-{% endif %}
+    <main class="max-w-4xl mx-auto px-4 py-5">
         {% block content %}{% endblock %}
     </main>
 
-{% if request.user.is_authenticated and request.user.role == "TECHNICIAN" %}
-    <nav class="technician-bottom-nav" aria-label="ناوبری پنل نیرو">
-        <a href="/{{ request.company.code }}/tech/" class="technician-nav-btn {% if request.path == '/'|add:request.company.code|add:'/tech/' %}active{% endif %}">
-            <span class="technician-nav-icon">🏠</span>
-            <span>داشبورد</span>
-        </a>
-        <a href="/{{ request.company.code }}/tech/orders/available/" class="technician-nav-btn {% if '/tech/orders/available/' in request.path %}active{% endif %}">
-            <span class="technician-nav-icon">➕</span>
-            <span>سفارش جدید</span>
-        </a>
-        <a href="/{{ request.company.code }}/tech/orders/my/" class="technician-nav-btn {% if '/tech/orders/my/' in request.path %}active{% endif %}">
-            <span class="technician-nav-icon">📋</span>
-            <span>سفارش‌های من</span>
-        </a>
-        <a href="/{{ request.company.code }}/tech/notifications/" class="technician-nav-btn {% if '/tech/notifications/' in request.path %}active{% endif %}">
-            <span class="technician-nav-icon">🔔</span>
-            <span>اعلان‌ها</span>
-        </a>
+    <nav class="fixed bottom-0 inset-x-0 z-30 bg-white/95 backdrop-blur-lg border-t border-gray-200 shadow-[0_-4px_20px_rgba(0,0,0,0.08)] lg:max-w-lg lg:mx-auto lg:bottom-4 lg:rounded-2xl lg:border lg:shadow-xl">
+        <div class="grid grid-cols-4 h-16">
+            <a href="/{{ request.company.code }}/tech/"
+               class="flex flex-col items-center justify-center gap-0.5 text-xs font-medium {% if request.path == '/'|add:request.company.code|add:'/tech/' %}text-brand-600{% else %}text-gray-500 hover:text-gray-700{% endif %} transition-smooth">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+                <span>داشبورد</span>
+            </a>
+            <a href="/{{ request.company.code }}/tech/orders/available/"
+               class="flex flex-col items-center justify-center gap-0.5 text-xs font-medium {% if '/tech/orders/available/' in request.path %}text-brand-600{% else %}text-gray-500 hover:text-gray-700{% endif %} transition-smooth">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                <span>سفارش جدید</span>
+            </a>
+            <a href="/{{ request.company.code }}/tech/orders/my/"
+               class="flex flex-col items-center justify-center gap-0.5 text-xs font-medium {% if '/tech/orders/my/' in request.path %}text-brand-600{% else %}text-gray-500 hover:text-gray-700{% endif %} transition-smooth">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+                <span>سفارش‌های من</span>
+            </a>
+            <a href="/{{ request.company.code }}/tech/notifications/"
+               class="flex flex-col items-center justify-center gap-0.5 text-xs font-medium {% if '/tech/notifications/' in request.path %}text-brand-600{% else %}text-gray-500 hover:text-gray-700{% endif %} transition-smooth">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+                <span>اعلان‌ها</span>
+            </a>
+        </div>
     </nav>
 </div>
+
 {% else %}
+{# === ADMIN / OPERATOR / CUSTOMER LAYOUT === #}
+<div class="flex min-h-screen" id="app">
+    {# Sidebar #}
+    <aside id="sidebar"
+           class="no-print fixed inset-y-0 right-0 z-40 w-64 bg-slate-900 text-slate-200 flex flex-col
+                  transform translate-x-full lg:translate-x-0 transition-transform duration-300 ease-in-out lg:relative lg:inset-auto">
+        <div class="flex items-center gap-3 px-5 py-5 border-b border-slate-700/50">
+            <div class="w-9 h-9 rounded-lg bg-brand-600 flex items-center justify-center flex-shrink-0">
+                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                </svg>
+            </div>
+            <div class="min-w-0">
+                <h2 class="text-sm font-bold text-white truncate">{% block sidebar_brand %}رستی سرویس{% endblock %}</h2>
+                <p class="text-xs text-slate-400 truncate">پنل مدیریت</p>
+            </div>
+        </div>
+        <nav class="flex-1 overflow-y-auto py-4 px-3 space-y-1">
+            <style>
+                /* Legacy nav compatibility: style <li><a> items from old templates */
+                #app aside nav li { list-style: none; }
+                #app aside nav li a {
+                    display: flex; align-items: center; gap: 0.75rem;
+                    padding: 0.625rem 0.75rem; border-radius: 0.5rem;
+                    font-size: 0.875rem; font-weight: 500;
+                    color: #cbd5e1; transition: all 0.2s;
+                    text-decoration: none;
+                }
+                #app aside nav li a:hover { background: rgba(51, 65, 85, 0.7); color: #fff; }
+                #app aside nav li a.active {
+                    background: rgba(59, 130, 246, 0.1); color: #3b82f6;
+                    border-right: 3px solid #3b82f6;
+                }
+            </style>
+            {% block sidebar_nav %}{% endblock %}
+        </nav>
+        <div class="border-t border-slate-700/50 px-4 py-3">
+            <div class="flex items-center justify-between">
+                <p class="text-xs text-slate-400 truncate">{{ request.user.get_full_name }}</p>
+                <a href="{% block logout_url %}/{% endblock %}" class="text-xs text-red-400 hover:text-red-300">خروج</a>
+            </div>
+        </div>
+    </aside>
+
+    <div id="sidebarOverlay" class="no-print fixed inset-0 z-30 bg-black/50 hidden lg:hidden" onclick="closeSidebar()"></div>
+
+    <div class="flex-1 flex flex-col min-w-0">
+        <header class="no-print sticky top-0 z-20 bg-white border-b border-gray-200 shadow-sm">
+            <div class="flex items-center h-14 px-4">
+                <button onclick="toggleSidebar()" class="lg:hidden p-2 rounded-lg text-gray-500 hover:bg-gray-100">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+                </button>
+            </div>
+        </header>
+        <main class="flex-1 p-4 lg:p-6">
+            {% block content %}{% endblock %}
+        </main>
+    </div>
 </div>
 
 <script>
-(function() {
-    // Copy brand and logout from mobile header to sidebar (avoids duplicate blocks)
-    var brand = document.querySelector('.mobile-brand');
-    var logout = document.querySelector('.mobile-logout');
-    var sidebarBrand = document.getElementById('sidebarBrand');
-    var sidebarLogout = document.getElementById('sidebarLogout');
-    if (brand && sidebarBrand) sidebarBrand.textContent = brand.textContent;
-    if (logout && sidebarLogout) sidebarLogout.href = logout.href;
-
-    // Close sidebar on outside click (mobile)
-    document.addEventListener('click', function(e) {
-        var sidebar = document.querySelector('.sidebar');
-        var toggle = document.querySelector('.menu-toggle');
-        if (sidebar && sidebar.classList.contains('open') && !sidebar.contains(e.target) && !toggle.contains(e.target)) {
-            sidebar.classList.remove('open');
-        }
-    });
-})();
+function toggleSidebar() {
+    document.getElementById('sidebar').classList.toggle('translate-x-full');
+    document.getElementById('sidebarOverlay').classList.toggle('hidden');
+}
+function closeSidebar() {
+    document.getElementById('sidebar').classList.add('translate-x-full');
+    document.getElementById('sidebarOverlay').classList.add('hidden');
+}
+document.addEventListener('keydown', function(e) { if (e.key === 'Escape') closeSidebar(); });
 </script>
 {% endif %}
 {% endblock %}
 
+{% block extra_head %}
+<link rel="stylesheet" href="/static/css/jalali_datepicker.css">
+{% endblock %}
 
-
-
+{% block extra_js %}
 <script src="/static/js/jalali_datepicker.js"></script>
+{% endblock %}

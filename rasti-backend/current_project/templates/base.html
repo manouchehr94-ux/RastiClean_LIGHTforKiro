@@ -5,13 +5,133 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}رستی سرویس{% endblock %}</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/static/css/app.css">
-    {% block extra_css %}{% endblock %}
+    <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Vazirmatn', 'Tahoma', 'Arial', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: {
+                            50: '#eff6ff',
+                            100: '#dbeafe',
+                            200: '#bfdbfe',
+                            300: '#93c5fd',
+                            400: '#60a5fa',
+                            500: '#3b82f6',
+                            600: '#2563eb',
+                            700: '#1d4ed8',
+                            800: '#1e40af',
+                            900: '#1e3a8a',
+                        },
+                        slate: {
+                            750: '#293548',
+                            850: '#162032',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Base RTL & Scrollbar */
+        * { font-family: 'Vazirmatn', Tahoma, sans-serif; }
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+        /* Sidebar transition */
+        .sidebar-overlay { transition: opacity 0.3s ease; }
+        .sidebar-panel { transition: transform 0.3s ease; }
+
+        /* Active nav indicator */
+        .nav-item.active { background: rgba(59, 130, 246, 0.1); color: #3b82f6; border-right: 3px solid #3b82f6; }
+        .nav-item.active .nav-icon { color: #3b82f6; }
+
+        /* Table hover */
+        .data-table tbody tr:hover { background: #f8fafc; }
+
+        /* Smooth transitions */
+        .transition-smooth { transition: all 0.2s ease; }
+
+        /* Print styles */
+        @media print {
+            .no-print { display: none !important; }
+            .print-full { margin: 0; padding: 0; width: 100%; }
+        }
+    </style>
+    <style>
+        /* Legacy CSS class compatibility for templates not yet migrated */
+        .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 0.75rem; }
+        .page-header h1 { font-size: 1.25rem; font-weight: 700; color: #1e293b; }
+        .card { background: #fff; border-radius: 0.75rem; border: 1px solid #f1f5f9; box-shadow: 0 1px 2px rgba(0,0,0,0.04); padding: 1.25rem; margin-bottom: 1rem; }
+        .card-header { font-size: 0.875rem; font-weight: 600; color: #475569; margin-bottom: 0.75rem; padding-bottom: 0.75rem; border-bottom: 1px solid #f1f5f9; }
+        .table-wrapper { overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; font-size: 0.875rem; }
+        th, td { padding: 0.75rem 1rem; text-align: right; border-bottom: 1px solid #f1f5f9; }
+        th { background: #fafbfc; font-weight: 600; color: #64748b; font-size: 0.75rem; text-transform: uppercase; }
+        tr:hover td { background: #fafbfc; }
+        .btn { display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; padding: 0.5rem 1rem; border: none; border-radius: 0.5rem; font-size: 0.875rem; font-weight: 500; cursor: pointer; text-decoration: none; transition: all 0.2s; min-height: 38px; }
+        .btn:hover { opacity: 0.9; text-decoration: none; }
+        .btn-primary { background: #2563eb; color: #fff; }
+        .btn-primary:hover { background: #1d4ed8; }
+        .btn-success { background: #16a34a; color: #fff; }
+        .btn-danger { background: #dc2626; color: #fff; }
+        .btn-outline { background: transparent; border: 1px solid #e2e8f0; color: #475569; }
+        .btn-outline:hover { border-color: #cbd5e1; background: #f8fafc; }
+        .btn-sm { padding: 0.35rem 0.75rem; font-size: 0.8rem; min-height: 32px; }
+        .btn-block { display: flex; width: 100%; }
+        .badge { display: inline-flex; align-items: center; padding: 0.15rem 0.5rem; border-radius: 9999px; font-size: 0.7rem; font-weight: 600; }
+        .badge-new, .badge-issued { background: #dbeafe; color: #1e40af; }
+        .badge-progress, .badge-in_progress, .badge-waiting { background: #fef3c7; color: #92400e; }
+        .badge-done, .badge-paid, .badge-active { background: #d1fae5; color: #065f46; }
+        .badge-cancelled, .badge-inactive { background: #fee2e2; color: #991b1b; }
+        .badge-cancel_requested { background: #ffedd5; color: #9a3412; }
+        .form-group { margin-bottom: 0.75rem; }
+        .form-group label { display: block; font-size: 0.8rem; font-weight: 500; color: #475569; margin-bottom: 0.35rem; }
+        .form-control { width: 100%; padding: 0.6rem 0.85rem; border: 1px solid #e2e8f0; border-radius: 0.5rem; font-size: 0.875rem; font-family: inherit; transition: border-color 0.2s; }
+        .form-control:focus { outline: none; border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1); }
+        .alert { padding: 0.75rem 1rem; border-radius: 0.5rem; margin-bottom: 1rem; font-size: 0.875rem; }
+        .alert-error { background: #fef2f2; color: #991b1b; border: 1px solid #fecaca; }
+        .alert-success { background: #f0fdf4; color: #166534; border: 1px solid #bbf7d0; }
+        .alert-info { background: #eff6ff; color: #1e40af; border: 1px solid #bfdbfe; }
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 0.75rem; margin-bottom: 1.5rem; }
+        .stat-card { background: #fff; border-radius: 0.75rem; border: 1px solid #f1f5f9; padding: 1rem; text-align: center; box-shadow: 0 1px 2px rgba(0,0,0,0.04); }
+        .stat-value { font-size: 1.5rem; font-weight: 800; color: #1e293b; }
+        .stat-label { font-size: 0.8rem; color: #64748b; margin-top: 0.25rem; }
+        .stat-card.accent { border-top: 3px solid #2563eb; }
+        .stat-card.success { border-top: 3px solid #16a34a; }
+        .stat-card.warning { border-top: 3px solid #f59e0b; }
+        .stat-card.danger { border-top: 3px solid #dc2626; }
+        select.form-control { appearance: auto; }
+        textarea.form-control { resize: vertical; }
+        .inline-actions { display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: center; }
+        .compact-form { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 0.75rem; align-items: end; }
+        .nested-box { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 0.5rem; padding: 1rem; margin-top: 0.75rem; }
+        .help-text { color: #64748b; font-size: 0.8rem; margin-top: 0.25rem; }
+        .muted-text { color: #64748b; font-size: 0.875rem; }
+        .page-full { padding: 2rem; max-width: 100%; }
+        .page-center { display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 2rem; }
+        .public-hero { background: linear-gradient(135deg, #1e293b 0%, #334155 100%); color: #fff; padding: 3rem 2rem; border-radius: 0.75rem; margin-bottom: 2rem; text-align: center; }
+        .public-hero h1 { font-size: 1.75rem; margin-bottom: 0.75rem; }
+        .public-hero p { font-size: 1rem; color: #cbd5e1; }
+        .service-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 1rem; margin-bottom: 2rem; }
+        .service-card { background: #fff; border-radius: 0.5rem; padding: 1.25rem; box-shadow: 0 1px 3px rgba(0,0,0,0.06); border-right: 3px solid #2563eb; }
+        .service-card h3 { font-size: 1rem; color: #1e293b; margin-bottom: 0.5rem; }
+        .service-card p { font-size: 0.85rem; color: #64748b; }
+        .service-card .price { font-weight: 700; color: #2563eb; margin-top: 0.5rem; }
+        .login-box { width: 100%; max-width: 380px; background: #fff; border-radius: 0.75rem; padding: 2rem; box-shadow: 0 4px 20px rgba(0,0,0,0.06); }
+    </style>
+    {% block extra_head %}{% endblock %}
 </head>
-<body>
+<body class="bg-gray-50 text-gray-800 antialiased min-h-screen">
     {% block body %}
     {% block content %}{% endblock %}
     {% endblock %}
+    {% block extra_js %}{% endblock %}
 </body>
 </html>
