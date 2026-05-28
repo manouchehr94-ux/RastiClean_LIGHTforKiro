@@ -9,6 +9,7 @@ from django.urls import path
 from apps.accounts import views as auth_views
 
 from . import views
+from . import views_comm_templates
 from . import views_messages
 from . import views_sms_billing
 
@@ -38,6 +39,12 @@ urlpatterns = [
     path("sms-billing/invoices/", views_sms_billing.sms_billing_invoices, name="sms_billing_invoices"),
     path("sms-billing/invoices/<int:invoice_id>/", views_sms_billing.sms_billing_invoice_detail, name="sms_billing_invoice_detail"),
     path("sms-billing/invoices/<int:invoice_id>/mark-paid/", views_sms_billing.sms_billing_invoice_mark_paid, name="sms_billing_invoice_mark_paid"),
+
+    # Communication Templates
+    path("communication-templates/", views_comm_templates.comm_template_list, name="comm_templates"),
+    path("communication-templates/create/", views_comm_templates.comm_template_create, name="comm_template_create"),
+    path("communication-templates/<int:template_id>/", views_comm_templates.comm_template_detail, name="comm_template_detail"),
+    path("communication-templates/<int:template_id>/edit/", views_comm_templates.comm_template_edit, name="comm_template_edit"),
 
     # Company Management
     path("companies/", views.company_list, name="companies"),

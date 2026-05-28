@@ -327,3 +327,80 @@ class PlatformPaymentTransaction(models.Model):
 
     def __str__(self):
         return f"Payment #{self.id} - {self.invoice.invoice_number} ({self.get_status_display()})"
+
+
+
+
+class CommunicationTemplate(models.Model):
+    """
+    Platform Owner controlled communication template.
+    Tenant companies can ONLY toggle is_enabled for their own company.
+    They CANNOT edit text, title, body, links, or placeholders.
+    """
+
+    class EventKey(models.TextChoices):
+        COMPANY_REGISTERED = "COMPANY_REGISTERED", "ثبت‌نام شرکت"
+        COMPANY_APPROVED = "COMPANY_APPROVED", "تأیید شرکت"
+        ORDER_CREATED = "ORDER_CREATED", "ایجاد سفارش"
+        ORDER_ASSIGNED = "ORDER_ASSIGNED", "تخصیص سفارش"
+        ORDER_STATUS_CHANGED = "ORDER_STATUS_CHANGED", "تغییر وضعیت سفارش"
+        INVOICE_CREATED = "INVOICE_CREATED", "صدور فاکتور"
+        PAYMENT_RECEIVED = "PAYMENT_RECEIVED", "دریافت پرداخت"
+        SMS_CREDIT_LOW = "SMS_CREDIT_LOW", "اعتبار پیامک کم"
+        SMS_CREDIT_EMPTY = "SMS_CREDIT_EMPTY", "اعتبار پیامک تمام"
+        TECHNICIAN_NOTIFICATION = "TECHNICIAN_NOTIFICATION", "اعلان تکنسین"
+        OPERATOR_NOTIFICATION = "OPERATOR_NOTIFICATION", "اعلان اپراتور"
+
+    class Channel(models.TextChoices):
+        INTERNAL_NOTIFICATION = "INTERNAL_NOTIFICATION", "اعلان داخلی"
+        SMS = "SMS", "پیامک"
+        EMAIL_FUTURE = "EMAIL_FUTURE", "ایمیل (آینده)"
+
+    class RecipientType(models.TextChoices):
+        COMPANY_ADMIN = "COMPANY_ADMIN", "مدیر شرکت"
+        OPERATOR = "OPERATOR", "اپراتور"
+        TECHNICIAN = "TECHNICIAN", "تکنسین"
+        PLATFORM_OWNER = "PLATFORM_OWNER", "مدیر پلتفرم"
+
+    company = models.ForeignKey(
+        "tenants.Company", on_delete=models.CASCADE, null=True, blank=True,
+        related_name="comm_templates",
+        help_text="Null = global default. Set = company-specific override.",
+    )
+    event_key = models.CharField(max_length=40, choices=EventKey.choices)
+    channel = models.CharField(max_length=30, choices=Channel.choices)
+    recipient_type = models.CharField(max_length=20, choices=RecipientType.choices)
+    title_template = models.CharField(max_length=300)
+    body_template = models.TextField()
+    action_label = models.CharField(max_length=100, blank=True)
+    action_url_template = models.CharField(max_length=300, blank=True)
+    is_active = models.BooleanField(default=True)
+    is_required = models.BooleanField(default=False)
+    allow_company_toggle = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["event_key", "channel"]
+        verbose_name = "Communication Template"
+
+    def __str__(self):
+        scope = self.company.code if self.company else "GLOBAL"
+        return f"[{scope}] {self.get_event_key_display()} / {self.get_channel_display()}"
+
+
+class CommunicationTemplateCompanySetting(models.Model):
+    """Per-company toggle for a communication template."""
+    company = models.ForeignKey("tenants.Company", on_delete=models.CASCADE, related_name="comm_template_settings")
+    template = models.ForeignKey(CommunicationTemplate, on_delete=models.CASCADE, related_name="company_settings")
+    is_enabled = models.BooleanField(default=True)
+    updated_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=["company", "template"], name="unique_comm_tpl_setting_per_company"),
+        ]
+
+    def __str__(self):
+        return f"{self.company.code} / {self.template.event_key} → {'enabled' if self.is_enabled else 'disabled'}"

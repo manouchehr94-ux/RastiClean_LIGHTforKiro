@@ -21,6 +21,7 @@ from django.urls import include, path
 
 from . import views, views_admin, views_branding
 from apps.platform_core import views_tenant_sms_credit as tenant_sms_views
+from apps.platform_core import views_tenant_comm_settings as tenant_comm_views
 from .views_redirects import (
     legacy_notifications_redirect,
     legacy_orders_catch_all,
@@ -120,6 +121,9 @@ urlpatterns = [
     path("admin/sms-credit/transactions/", tenant_sms_views.tenant_sms_transactions, name="admin_sms_transactions"),
     path("admin/sms-credit/invoices/", tenant_sms_views.tenant_sms_invoices, name="admin_sms_invoices"),
     path("admin/sms-credit/invoices/<int:invoice_id>/", tenant_sms_views.tenant_sms_invoice_detail, name="admin_sms_invoice_detail"),
+
+    # Admin: Communication Settings
+    path("admin/communication-settings/", tenant_comm_views.tenant_comm_settings, name="admin_communication_settings"),
 
     # Admin: Reports & Notifications
     path("admin/reports/", include("apps.reports.urls")),
