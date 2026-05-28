@@ -9,6 +9,7 @@ from django.urls import path
 from apps.accounts import views as auth_views
 
 from . import views
+from . import views_comm_templates
 from . import views_messages
 from . import views_sms_billing
 
@@ -39,6 +40,12 @@ urlpatterns = [
     path("sms-billing/invoices/<int:invoice_id>/", views_sms_billing.sms_billing_invoice_detail, name="sms_billing_invoice_detail"),
     path("sms-billing/invoices/<int:invoice_id>/mark-paid/", views_sms_billing.sms_billing_invoice_mark_paid, name="sms_billing_invoice_mark_paid"),
 
+    # Communication Templates
+    path("communication-templates/", views_comm_templates.comm_template_list, name="comm_templates"),
+    path("communication-templates/create/", views_comm_templates.comm_template_create, name="comm_template_create"),
+    path("communication-templates/<int:template_id>/", views_comm_templates.comm_template_detail, name="comm_template_detail"),
+    path("communication-templates/<int:template_id>/edit/", views_comm_templates.comm_template_edit, name="comm_template_edit"),
+
     # Company Management
     path("companies/", views.company_list, name="companies"),
     path("companies/create/", views.company_create, name="company_create"),
@@ -46,6 +53,12 @@ urlpatterns = [
     path("companies/<int:company_id>/edit/", views.company_edit, name="company_edit"),
     path("companies/<int:company_id>/activate/", views.company_activate, name="company_activate"),
     path("companies/<int:company_id>/deactivate/", views.company_deactivate, name="company_deactivate"),
+
+    # Company-specific communication templates (from company detail)
+    path("companies/<int:company_id>/templates/", views_comm_templates.company_templates_list, name="company_comm_templates"),
+    path("companies/<int:company_id>/templates/create/", views_comm_templates.company_template_create, name="company_comm_template_create"),
+    path("companies/<int:company_id>/templates/<int:template_id>/edit/", views_comm_templates.company_template_edit, name="company_comm_template_edit"),
+    path("companies/<int:company_id>/templates/<int:template_id>/reset/", views_comm_templates.company_template_reset, name="company_comm_template_reset"),
 
     # Plan Management
     path("plans/", views.plan_list, name="plans"),

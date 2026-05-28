@@ -1,0 +1,73 @@
+{% extends "base_dashboard.html" %}
+{% block title %}تنظیمات پیام‌ها - {{ company.name }}{% endblock %}
+{% block sidebar_brand %}{{ company.name }}{% endblock %}
+{% block logout_url %}/{{ company.code }}/login/logout/{% endblock %}
+{% block sidebar_nav %}<li><a href="/{{ company.code }}/admin/">داشبورد</a></li><li><a href="/{{ company.code }}/admin/communication-settings/" class="active">تنظیمات پیام‌ها</a></li>{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>تنظیمات پیام‌ها و اعلان‌ها</h1>
+    <p style="font-size:0.875rem;color:#64748b;margin-top:0.25rem;">شما می‌توانید اعلان‌های غیراجباری را فعال یا غیرفعال کنید.</p>
+</div>
+
+{% if success %}
+<div style="margin-bottom:1rem;padding:0.75rem 1rem;border-radius:0.5rem;background:#ecfdf5;border:1px solid #a7f3d0;color:#065f46;font-size:0.875rem;">
+    {{ success }}
+</div>
+{% endif %}
+
+{% if templates_data %}
+<div class="card" style="overflow:hidden;">
+    <table style="width:100%;border-collapse:collapse;">
+        <thead>
+            <tr style="background:#f8fafc;">
+                <th style="padding:0.75rem 1rem;text-align:right;font-size:0.75rem;font-weight:600;color:#64748b;text-transform:uppercase;">رویداد</th>
+                <th style="padding:0.75rem 1rem;text-align:right;font-size:0.75rem;font-weight:600;color:#64748b;text-transform:uppercase;">کانال</th>
+                <th style="padding:0.75rem 1rem;text-align:right;font-size:0.75rem;font-weight:600;color:#64748b;text-transform:uppercase;">گیرنده</th>
+                <th style="padding:0.75rem 1rem;text-align:right;font-size:0.75rem;font-weight:600;color:#64748b;text-transform:uppercase;">وضعیت</th>
+                <th style="padding:0.75rem 1rem;text-align:right;font-size:0.75rem;font-weight:600;color:#64748b;text-transform:uppercase;">عملیات</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in templates_data %}
+            <tr style="border-top:1px solid #f1f5f9;">
+                <td style="padding:0.75rem 1rem;font-size:0.875rem;color:#1e293b;">{{ item.template.get_event_key_display }}</td>
+                <td style="padding:0.75rem 1rem;font-size:0.875rem;color:#64748b;">{{ item.template.get_channel_display }}</td>
+                <td style="padding:0.75rem 1rem;font-size:0.875rem;color:#64748b;">{{ item.template.get_recipient_type_display }}</td>
+                <td style="padding:0.75rem 1rem;">
+                    {% if item.is_required %}
+                    <span style="display:inline-flex;align-items:center;padding:0.125rem 0.5rem;border-radius:9999px;font-size:0.75rem;font-weight:500;background:#fef3c7;color:#92400e;border:1px solid #fde68a;">اجباری</span>
+                    {% elif item.is_enabled %}
+                    <span style="display:inline-flex;align-items:center;padding:0.125rem 0.5rem;border-radius:9999px;font-size:0.75rem;font-weight:500;background:#ecfdf5;color:#065f46;border:1px solid #a7f3d0;">فعال</span>
+                    {% else %}
+                    <span style="display:inline-flex;align-items:center;padding:0.125rem 0.5rem;border-radius:9999px;font-size:0.75rem;font-weight:500;background:#f1f5f9;color:#64748b;border:1px solid #e2e8f0;">غیرفعال</span>
+                    {% endif %}
+                </td>
+                <td style="padding:0.75rem 1rem;">
+                    {% if item.can_toggle %}
+                    <form method="post" style="display:inline;">
+                        {% csrf_token %}
+                        <input type="hidden" name="template_id" value="{{ item.template.id }}">
+                        {% if item.is_enabled %}
+                        <input type="hidden" name="action" value="disable">
+                        <button type="submit" class="btn btn-outline" style="font-size:0.75rem;padding:0.25rem 0.75rem;">غیرفعال‌سازی</button>
+                        {% else %}
+                        <input type="hidden" name="action" value="enable">
+                        <button type="submit" class="btn btn-primary" style="font-size:0.75rem;padding:0.25rem 0.75rem;">فعال‌سازی</button>
+                        {% endif %}
+                    </form>
+                    {% else %}
+                    <span style="font-size:0.75rem;color:#94a3b8;">—</span>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<div class="card" style="padding:2rem;text-align:center;">
+    <p style="font-size:0.875rem;color:#64748b;">هنوز قالب پیامی توسط مدیر پلتفرم تعریف نشده.</p>
+</div>
+{% endif %}
+{% endblock %}
