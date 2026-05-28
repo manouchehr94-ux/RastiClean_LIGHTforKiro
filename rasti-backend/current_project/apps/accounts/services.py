@@ -124,7 +124,7 @@ class RedirectService:
             URL path to redirect to.
         """
         if user.role == UserRole.PLATFORM_OWNER:
-            return "/loginlogin/"
+            return "/owner-platform/dashboard/"
 
         if not company_code and user.company:
             company_code = user.company.code

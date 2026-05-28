@@ -77,14 +77,14 @@ def user_belongs_to_company(user, company) -> bool:
 def require_platform_owner(view_func: Callable) -> Callable:
     """
     Decorator: Restrict view to PLATFORM_OWNER role only.
-    Redirects unauthenticated users to /loginlogin/.
+    Redirects unauthenticated users to /login/.
     Returns 403 for authenticated non-platform-owners.
     """
 
     @wraps(view_func)
     def wrapper(request: HttpRequest, *args: Any, **kwargs: Any):
         if not request.user.is_authenticated:
-            return HttpResponseRedirect("/loginlogin/")
+            return HttpResponseRedirect("/login/")
         if not is_platform_owner(request.user):
             return HttpResponseForbidden("Platform owners only.")
         return view_func(request, *args, **kwargs)
@@ -106,7 +106,7 @@ def require_tenant_auth(view_func: Callable) -> Callable:
             raise Http404("Company not found.")
 
         if not request.user.is_authenticated:
-            return HttpResponseRedirect(f"/{company.code}/login/")
+            return HttpResponseRedirect(f"/login/")
 
         if not user_belongs_to_company(request.user, company):
             return HttpResponseForbidden("Access denied.")
@@ -134,7 +134,7 @@ def require_tenant_role(*allowed_roles: str) -> Callable:
                 raise Http404("Company not found.")
 
             if not request.user.is_authenticated:
-                return HttpResponseRedirect(f"/{company.code}/login/")
+                return HttpResponseRedirect("/login/")
 
             if not user_belongs_to_company(request.user, company):
                 return HttpResponseForbidden("Access denied.")

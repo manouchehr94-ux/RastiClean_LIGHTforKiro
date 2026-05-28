@@ -4,11 +4,74 @@ Accounts - Views.
 Thin views for authentication. All business logic delegated to services.
 All permission logic uses decorators from permissions.py.
 """
-from django.http import HttpRequest, HttpResponse
+from django.contrib.auth import authenticate
+from django.http import HttpRequest, HttpResponse, HttpResponsePermanentRedirect
 from django.shortcuts import redirect, render
 
 from .forms import PlatformLoginForm, TenantLoginForm
+from .models import UserRole
 from .services import AuthenticationService, RedirectService
+
+
+# =============================================================================
+# UNIFIED LOGIN VIEW (serves /login/)
+# =============================================================================
+
+
+def unified_login(request: HttpRequest) -> HttpResponse:
+    """
+    Single unified login page for ALL user roles.
+
+    GET: Display login form.
+    POST: Authenticate any user (platform owner, admin, technician, customer),
+          detect role, redirect to correct dashboard.
+
+    Since phone is globally unique, no company code is needed.
+    """
+    # Already authenticated → redirect to appropriate dashboard
+    if request.user.is_authenticated:
+        url = RedirectService.get_post_login_url(user=request.user)
+        return redirect(url)
+
+    error = ""
+    phone_value = ""
+
+    if request.method == "POST":
+        phone = request.POST.get("phone", "").strip()
+        password = request.POST.get("password", "")
+        phone_value = phone
+
+        if not phone or not password:
+            error = "شماره تلفن و رمز عبور الزامی است."
+        else:
+            user = authenticate(request, username=phone, password=password)
+
+            if user is None:
+                error = "شماره تلفن یا رمز عبور اشتباه است."
+            elif not user.is_active:
+                error = "حساب کاربری غیرفعال است."
+            elif user.company and not user.company.is_active:
+                error = "شرکت شما غیرفعال شده است. با پشتیبانی تماس بگیرید."
+            else:
+                AuthenticationService.login_user(request=request, user=user)
+                # Redirect to ?next= if provided, otherwise role-based
+                next_url = request.POST.get("next") or request.GET.get("next")
+                if next_url and next_url.startswith("/"):
+                    return redirect(next_url)
+                url = RedirectService.get_post_login_url(user=user)
+                return redirect(url)
+
+    return render(request, "accounts/unified_login.html", {
+        "error": error,
+        "phone_value": phone_value,
+        "next": request.GET.get("next", ""),
+    })
+
+
+def unified_logout(request: HttpRequest) -> HttpResponse:
+    """Logout for any user. Redirects to unified login."""
+    AuthenticationService.logout_user(request=request)
+    return redirect("/login/")
 
 
 # =============================================================================
@@ -63,54 +126,15 @@ def platform_logout(request: HttpRequest) -> HttpResponse:
 
 def tenant_login(request: HttpRequest, **kwargs) -> HttpResponse:
     """
-    Tenant user login page at /<company_code>/login/.
-
-    GET: Display login form for the company.
-    POST: Authenticate user, enforce tenant isolation, redirect by role.
-
-    Note: company_code kwarg comes from URL pattern but we use request.company
-    (resolved by TenantMiddleware) instead.
+    Legacy tenant login at /<company_code>/login/.
+    Redirects to unified /login/?company=<code> for backward compatibility.
     """
     company = getattr(request, "company", None)
-
-    # Already logged in and belongs to this company → redirect
-    if request.user.is_authenticated and company:
-        from .permissions import user_belongs_to_company
-        if user_belongs_to_company(request.user, company):
-            url = RedirectService.get_post_login_url(
-                user=request.user, company_code=company.code
-            )
-            return redirect(url)
-
-    error = ""
-    form = TenantLoginForm()
-
-    if request.method == "POST":
-        form = TenantLoginForm(request.POST)
-        if form.is_valid():
-            user, error = AuthenticationService.authenticate_tenant_user(
-                request=request,
-                phone=form.cleaned_data["phone"],
-                password=form.cleaned_data["password"],
-            )
-            if user:
-                AuthenticationService.login_user(request=request, user=user)
-                url = RedirectService.get_post_login_url(
-                    user=user, company_code=company.code
-                )
-                return redirect(url)
-
-    return render(request, "accounts/tenant_login.html", {
-        "form": form,
-        "error": error,
-        "company": company,
-    })
+    code = company.code if company else ""
+    return HttpResponsePermanentRedirect(f"/login/?company={code}")
 
 
 def tenant_logout(request: HttpRequest, **kwargs) -> HttpResponse:
-    """Logout for tenant users. Redirects back to company login."""
-    company = getattr(request, "company", None)
+    """Logout for tenant users. Redirects to unified login."""
     AuthenticationService.logout_user(request=request)
-    if company:
-        return redirect(f"/{company.code}/login/")
-    return redirect("/")
+    return redirect("/login/")
