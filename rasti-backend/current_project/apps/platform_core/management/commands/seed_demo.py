@@ -80,8 +80,9 @@ class Command(BaseCommand):
 
     def _create_platform_owner(self) -> CompanyUser:
         user, created = CompanyUser.objects.get_or_create(
-            phone="platform_owner",
+            username="platform_owner",
             defaults={
+                "phone": "09100000001",
                 "role": UserRole.PLATFORM_OWNER,
                 "is_staff": True,
                 "is_superuser": True,
@@ -205,8 +206,9 @@ class Command(BaseCommand):
 
     def _create_admin(self, company: Company) -> CompanyUser:
         user, created = CompanyUser.objects.get_or_create(
-            phone="n54_admin",
+            username="n54_admin",
             defaults={
+                "phone": "09100000002",
                 "company": company,
                 "role": UserRole.COMPANY_ADMIN,
                 "first_name": "Admin",
@@ -221,8 +223,9 @@ class Command(BaseCommand):
 
     def _create_technician(self, company: Company) -> tuple[CompanyUser, Technician]:
         user, created = CompanyUser.objects.get_or_create(
-            phone="n54_tech",
+            username="n54_tech",
             defaults={
+                "phone": "09100000003",
                 "company": company,
                 "role": UserRole.TECHNICIAN,
                 "first_name": "Ali",
@@ -242,8 +245,9 @@ class Command(BaseCommand):
 
     def _create_customer(self, company: Company) -> tuple[CompanyUser, Customer]:
         user, created = CompanyUser.objects.get_or_create(
-            phone="n54_customer",
+            username="n54_customer",
             defaults={
+                "phone": "09100000004",
                 "company": company,
                 "role": UserRole.CUSTOMER,
                 "first_name": "Sara",
@@ -257,7 +261,7 @@ class Command(BaseCommand):
 
         customer, _ = Customer.objects.get_or_create(
             company=company,
-            phone="n54_customer",
+            phone="09100000004",
             defaults={
                 "user": user,
                 "first_name": "Sara",

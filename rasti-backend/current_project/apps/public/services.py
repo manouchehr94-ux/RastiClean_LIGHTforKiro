@@ -79,7 +79,7 @@ class CompanyRegistrationService:
         elif Company.objects.filter(email=company_email).exists():
             errors["company_email"] = "این ایمیل شرکت قبلاً استفاده شده است."
 
-        # Admin phone
+        # Admin phone (for OTP only, NOT unique — same person may have multiple accounts)
         admin_phone = (data.get("admin_phone") or "").strip()
         if not admin_phone:
             errors["admin_phone"] = "شماره تلفن مدیر الزامی است."
@@ -87,8 +87,6 @@ class CompanyRegistrationService:
             normalized = normalize_sms_phone_number(admin_phone)
             if normalized is None:
                 errors["admin_phone"] = "شماره تلفن وارد شده معتبر نیست. فرمت صحیح: 09xxxxxxxxx"
-            elif CompanyUser.objects.filter(phone=normalized).exists():
-                errors["admin_phone"] = "این شماره تلفن قبلاً در سیستم ثبت شده است."
 
         # Admin username
         admin_username = (data.get("admin_username") or "").strip().lower()
@@ -106,13 +104,12 @@ class CompanyRegistrationService:
             errors["admin_username"] = "این نام کاربری قبلاً استفاده شده است."
 
         # Admin email
+        # Admin email (format-only, NOT unique — same person may have multiple accounts)
         admin_email = (data.get("admin_email") or "").strip().lower()
         if not admin_email:
             errors["admin_email"] = "ایمیل مدیر الزامی است."
         elif "@" not in admin_email or "." not in admin_email.split("@")[-1]:
             errors["admin_email"] = "فرمت ایمیل مدیر معتبر نیست."
-        elif CompanyUser.objects.filter(email=admin_email).exists():
-            errors["admin_email"] = "این ایمیل قبلاً استفاده شده است."
 
         # Password
         password = data.get("password") or ""

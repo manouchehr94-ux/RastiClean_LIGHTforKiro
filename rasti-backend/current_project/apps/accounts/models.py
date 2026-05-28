@@ -75,7 +75,11 @@ class CompanyUser(AbstractBaseUser, PermissionsMixin):
         db_index=True,
         help_text="Primary login identifier. Lowercase, letters/numbers/underscore/dash.",
     )
-    phone = models.CharField(max_length=15, unique=True)
+    phone = models.CharField(
+        max_length=15,
+        blank=True,
+        help_text="Mobile phone for OTP/contact. Not unique — same person may have multiple accounts.",
+    )
     email = models.EmailField(blank=True)
     first_name = models.CharField(max_length=100, blank=True)
     last_name = models.CharField(max_length=100, blank=True)
@@ -92,7 +96,7 @@ class CompanyUser(AbstractBaseUser, PermissionsMixin):
     objects = CompanyUserManager()
 
     USERNAME_FIELD = "username"
-    REQUIRED_FIELDS: list[str] = ["phone"]
+    REQUIRED_FIELDS: list[str] = []
 
     class Meta:
         ordering = ["-date_joined"]
